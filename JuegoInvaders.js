@@ -6,6 +6,7 @@ function preload() {
     //game.load.image('enemyBullet', 'phaser-examples-master/examples/assets/games/invaders/newBulletEnemy.png');
     game.load.image('enemyBullet', 'phaser-examples-master/examples/assets/games/invaders/newBulletEnemy.png');
     game.load.spritesheet('invader', 'phaser-examples-master/examples/assets/games/invaders/invader32x32x4.png', 32, 32);
+    game.load.spritesheet('enemy', 'phaser-examples-master/examples/assets/games/invaders/NuevosContrarios.png', 793.75, 709);
     game.load.image('ship', 'phaser-examples-master/examples/assets/games/invaders/player.png');
     game.load.image('othership', 'phaser-examples-master/examples/assets/games/invaders/player2.png');
     game.load.spritesheet('kaboom', 'phaser-examples-master/examples/assets/games/invaders/explode.png', 128, 128);
@@ -25,8 +26,13 @@ var fireButton2;
 //Vidas de los personajes
 var lives;
 var lives2;
+//Enemigos
 var aliens;
+var newenemies;
+//Balas de cada personaje
 var bullets;
+var bullets2;
+
 var bulletTime = 0;
 var explosions;
 var starfield;
@@ -45,7 +51,7 @@ function create() {
     //  The scrolling starfield background
     starfield = game.add.tileSprite(0, 0, 800, 600, 'starfield');
 
-    //  Our bullet group
+    //  Balas del jugador 1
     bullets = game.add.group();
     bullets.enableBody = true;
     bullets.physicsBodyType = Phaser.Physics.ARCADE;
@@ -54,6 +60,15 @@ function create() {
     bullets.setAll('anchor.y', 1);
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('checkWorldBounds', true);
+    //  Balas del jugador 2
+    bullets2 = game.add.group();
+    bullets2.enableBody = true;
+    bullets2.physicsBodyType = Phaser.Physics.ARCADE;
+    bullets2.createMultiple(30, 'bullet');
+    bullets2.setAll('anchor.x', 0.5);
+    bullets2.setAll('anchor.y', 1);
+    bullets2.setAll('outOfBoundsKill', true);
+    bullets2.setAll('checkWorldBounds', true);
 
     // The enemy's bullets
     enemyBullets = game.add.group();
@@ -73,7 +88,7 @@ function create() {
 
     // The player2!
     player2 = game.add.sprite(400,50, 'othership');
-    player2.anchor.setTo(0.5,0.1);
+    player2.anchor.setTo(0.5,0.5);
     game.physics.enable(player2, Phaser.Physics.ARCADE);
     player2.angle = 180;
 
@@ -81,9 +96,14 @@ function create() {
     aliens = game.add.group();
     aliens.enableBody = true;
     aliens.physicsBodyType = Phaser.Physics.ARCADE;
+    
+    newenemies = game.add.group();
+    newenemies.enableBody = true;
+    newenemies.physicsBodyType = Phaser.Physics.ARCADE;
 
+    createAliens2();
     createAliens();
-
+    
     //  The score
     scoreString = 'Score : ';
     scoreText = game.add.text(10, 10, scoreString + score, { font: '34px Arial', fill: '#fff' });
@@ -126,23 +146,66 @@ function createAliens () {
     {
         for (var x = 0; x < 10; x++)
         {
-            var alien = aliens.create(x * 48, y * 50, 'invader');
+            var alien = aliens.create(x * 48, y * 32, 'invader');
+            if(y<2){
+                alien.angle = 180;
+                alien.x = newenemies.x + x*48;
+                alien.y = newenemies.y - (32 + y * 40);
+            }
+            else {
+                alien.x = newenemies.x + x*48;
+                alien.y = newenemies.y + (32 + y * 48);
+            }
             alien.anchor.setTo(0.5, 0.5);
             alien.animations.add('fly', [ 0, 1, 2, 3 ], 20, true);
             alien.play('fly');
-            alien.body.moves = false;
+            alien.body.moves = true;
+            //aliens.x = 20;
+            //aliens.y = 100;
         }
     }
 
-    aliens.x = 20;
-    aliens.y = 200;
+    //aliens.x = 20;
+    //aliens.y = 250;
 
     //  All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
-    var tween = game.add.tween(aliens).to( { x: 350 }, 2500, Phaser.Easing.Linear.None, true, 0, 100, true);
+    var tween = game.add.tween(aliens).to( { x: 350 }, 2500, Phaser.Easing.Quadratic.Out, true, 0, 100, true);
 
     //  When the tween loops it calls descend
     tween.onLoop.add(descend, this);
 }
+
+function createAliens2 () {
+    
+        for (var y = 0; y < 4; y++)
+        {
+            for (var x = 0; x < 10; x++)
+            {
+                var alien = newenemies.create(x * 48, y * 32, 'enemy');
+                alien.scale.x = 0.05;
+                alien.scale.y = 0.05;
+                alien.anchor.setTo(0.5, 0.5);
+                if(y<2){
+                    alien.angle = 180;
+                    
+                }
+                //Pasamos las animaciones 1 y 2 de la carita
+                //Falta programar que cuando tenga una colisión cambie a la siguiente animación
+                alien.animations.add('flying', [ 0, 1], 5, true);
+                alien.play('flying');
+                alien.body.moves = false;
+            }
+        }
+    
+        newenemies.x = 20;
+        newenemies.y = 250;
+    
+        //  All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
+        var tween = game.add.tween(newenemies).to( { x: 350 }, 4000, Phaser.Easing.Linear.None, true, 200, -500, true);
+    
+        //  When the tween loops it calls descend
+        tween.onLoop.add(descend, this);
+    }
 
 function setupInvader (invader) {
 
@@ -190,6 +253,8 @@ function update() {
 
         //  Run collision
         game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
+        //Para detectar las colisiones del jugador 1 con los enemigos centrales (caras amarillas)
+        game.physics.arcade.overlap(bullets, newenemies, collisionHandler, null, this);
         game.physics.arcade.overlap(enemyBullets, player, enemyHitsPlayer, null, this);
     }
 
@@ -219,7 +284,9 @@ function update() {
         }
 
         //  Run collision
-        game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
+        game.physics.arcade.overlap(bullets2, aliens, collisionHandler, null, this);
+        //Para detectar las colisiones del jugador 2 con los enemigos centrales (caras amarillas)
+        game.physics.arcade.overlap(bullets2, newenemies, collisionHandler, null, this);
         game.physics.arcade.overlap(enemyBullets, player2, enemyHitsPlayer, null, this);
     }
 
@@ -330,12 +397,24 @@ function fireBullet (Jugador, direccion) {
     if (game.time.now > bulletTime)
     {
         //  Grab the first bullet we can from the pool
-        bullet = bullets.getFirstExists(false);
+        if(direccion == 1){
+            bullet = bullets.getFirstExists(false);
+        }
+        else
+            bullet = bullets2.getFirstExists(false);
 
-        if (bullet)
+        if (bullet && direccion == 1)
         {
             //  And fire it
             bullet.reset(Jugador.x, Jugador.y + 8);
+            bullet.body.velocity.y = -400 * direccion;
+            bulletTime = game.time.now + 200;
+        }
+        else if (bullet && direccion == -1)
+        {
+            //  And fire it
+            bullet.angle = 180;
+            bullet.reset(Jugador.x, Jugador.y +30);
             bullet.body.velocity.y = -400 * direccion;
             bulletTime = game.time.now + 200;
         }
