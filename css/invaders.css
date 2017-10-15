@@ -1,0 +1,29 @@
+body {
+    background-color: black;
+}
+
+#main_container {
+    margin: 0px auto;
+    max-width: 1000px;
+    text-align: center;
+}
+
+#game_title {
+    font-family: "Lucida Console", Monaco, monospace;
+    color: rgb(0, 255, 0);
+    font-size: 5em;
+}
+
+#game {
+    margin: 3em auto;
+    width: 800px;
+    border: 3px solid rgb(0, 255, 0);
+}
+
+footer {
+    margin: auto;
+    text-align: center;
+    color: grey;
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+}
