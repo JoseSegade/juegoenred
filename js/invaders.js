@@ -215,11 +215,11 @@ function render() {
 function createAliens(){
     configAliens(4, 10, 'invader', 'fly_invader', [0, 1, 2, 3], aliens);
     aliens.x = 20;
-    aliens.y = 218;
+    aliens.y = 250;
     
     configAliens(4, 10, 'enemy', 'fly_enemy', [0, 1], new_enemies);
     new_enemies.x = 20;
-    new_enemies.y = 250;
+    new_enemies.y = 250;   
 }
 
 /// This function creates the aliens
@@ -230,19 +230,21 @@ function createAliens(){
 // tiles_array: array with the tiles index in the animation
 // group: group to add the aliens
 ///
-function configAliens(lines, rows, sprite_name, animation_name, tiles_array, group) {    
+function configAliens(lines, rows, sprite_name, animation_name, tiles_array, group) {
+    group.x = 0;
+    group.y = 0; 
     for(var y = 0; y < lines; y++){
         for(var x = 0; x < rows; x++){
             var alien = group.create(x * 48, y * 32, sprite_name);
 
             if(y < lines / 2) {
                 alien.angle = 180;
-                alien.x = new_enemies.x + x * 48;
-                alien.y = new_enemies.y - (32 + y * 48);
+                alien.x = group.x + x * 48;
+                alien.y = group.y - (32 + y * 48);
             }
             else {
-                alien.x = new_enemies.x + x * 48;
-                alien.y = new_enemies.y + (32 + y * 48);
+                alien.x = group.x + x * 48;
+                alien.y = group.y + (32 + y * 48);
             }
 
             alien.anchor.setTo(0.5, 0.5);
@@ -253,16 +255,17 @@ function configAliens(lines, rows, sprite_name, animation_name, tiles_array, gro
         }
     }
 
-    var tween = game.add.tween(group).to({x : 350}, 2500, Phaser.Easing.Quadratic.Out, true, 0, 100, true);
+    var tween = game.add.tween(group).to({x : 350}, 5000, Phaser.Easing.Quadratic.Out, true, 0, 100, true);
 
-    tween.onLoop.add(descend, this);
+    //tween.onLoop.add(descend, this);
 }
 
+/*
 /// This function makes the aliens descend
 ///
 function descend() {
     aliens.y += 10;
-}
+} */
 
 /// This function creates the aliens animation to make their explosions
 // invader: the alien who will have the explosion
@@ -353,7 +356,7 @@ function collisionHandler(bullet, alien) {
     explosion.reset(alien.body.x, alien.body.y);
     explosion.play('explosion', 30, false, true);
 
-    if(aliens.countLiving() == 0) {
+    if(aliens.countLiving() == 0 && new_enemies.countLiving() == 0) {
         score += 1000;
         scoreText.text = scoreString + score;
 
@@ -381,7 +384,7 @@ function enemyHitsPlayer(player, bullet) {
 
     // Creamos la explosion
     var explosion = explosions.getFirstExists(false);
-    explosions.reset(player.body.x, player.boy.y);
+    explosions.reset(player.body.x, player.body.y);
     explosions.play('explosion', 30, false, true);
 
     // Si el jugador se muere
@@ -405,6 +408,7 @@ function restart() {
 
     // Revivimos a los aliens
     aliens.removeAll();
+    new_enemies.removeAll();
     createAliens();
 
     // Revivimos al jugador
