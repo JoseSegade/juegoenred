@@ -1,4 +1,4 @@
-var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { preload: preload, create: create, update: update, render: render});
+var game = new Phaser.Game(800, 900, Phaser.AUTO, 'game', { preload: preload, create: create, update: update, render: render});
 
 function preload() {
     game.load.image('bullet', 'assets/bullet.png');
@@ -47,7 +47,7 @@ function create(){
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     // Creación del fondo estrellado
-    starfield = game.add.tileSprite(0, 0, 800, 600, 'starfield');
+    starfield = game.add.tileSprite(0, 0, 800, 900, 'starfield');
 
     // Balas del jugador uno
     bullets = game.add.group();
@@ -80,7 +80,7 @@ function create(){
     enemyBullets.setAll('checkWorldBounds', true);
 
     // El jugador 1
-    player = game.add.sprite(400, 550, 'player_ship');
+    player = game.add.sprite(400, game.world.height - 50, 'player_ship');
     player.anchor.setTo(0.5, 0.5);
     game.physics.enable(player, Phaser.Physics.ARCADE);
 
@@ -149,9 +149,11 @@ function update() {
     // Movimiento del escenario de fondo
     starfield.tilePosition.y += 2;
 
-    if(player.alive) {
+    if(player.alive && player2.alive) {
         // Reseteamos la posicion del jugador1, despues comprobamos las teclas de movimiento
         player.body.velocity.setTo(0, 0);
+        // Reseteamos la posicion del jugador2, despues comprobamos las teclas de movimiento
+        player2.body.velocity.setTo(0, 0);
 
         if(cursors.left.isDown) {
             player.body.velocity.x = -200;
@@ -160,9 +162,25 @@ function update() {
             player.body.velocity.x = 200;
         }
 
+        if(cursors2[0].isDown) {
+            player2.body.velocity.x = -200;
+        }
+        else if(cursors2[1].isDown) {
+            player2.body.velocity.x = 200;
+        }
+
+
         // Disparos
         if(fireButton.isDown) {
             player = fireBullet(player, 'UP');
+        }
+        
+        if(game.time.now > firingTimer) {
+            enemyFires();
+        }
+        // Disparos
+        if(fireButton2.isDown) {
+            player2 = fireBullet(player2, 'DOWN');
         }
         
         if(game.time.now > firingTimer) {
@@ -174,28 +192,7 @@ function update() {
         // Detectamos las colisiones con los enemigos amarillos
         game.physics.arcade.overlap(bullets, new_enemies, collisionHandler, null, this);
         // Detectamos las colisiones de los enemigos con el jugador1
-        game.physics.arcade.overlap(enemyBullets, player, enemyHitsPlayer, null, this);
-    }
-
-    if(player2.alive) {
-        // Reseteamos la posicion del jugador2, despues comprobamos las teclas de movimiento
-        player2.body.velocity.setTo(0, 0);
-
-        if(cursors2[0].isDown) {
-            player2.body.velocity.x = -200;
-        }
-        else if(cursors2[1].isDown) {
-            player2.body.velocity.x = 200;
-        }
-
-        // Disparos
-        if(fireButton2.isDown) {
-            player2 = fireBullet(player2, 'DOWN');
-        }
-        
-        if(game.time.now > firingTimer) {
-            enemyFires();
-        }
+        game.physics.arcade.overlap(enemyBullets, player, enemyHitsPlayer, null, this);       
 
         // Detectamos las colisiones
         game.physics.arcade.overlap(bullets2, aliens, collisionHandler, null, this);
@@ -213,13 +210,15 @@ function render() {
 /// This function creates the diferent types of aliens, their groups and their configurations
 ///
 function createAliens(){
-    configAliens(4, 10, 'invader', 'fly_invader', [0, 1, 2, 3], aliens);
+    configAliens(2, 10, 'invader', 'fly_invader', [0, 1, 2, 3], aliens);
+    configAliens(2, 10, 'enemy', 'fly_enemy', [0, 1], aliens,'DOWN', 2, 0);    
     aliens.x = 20;
-    aliens.y = 250;
+    aliens.y = game.world.height / 2 + 15;
     
-    configAliens(4, 10, 'enemy', 'fly_enemy', [0, 1], new_enemies);
+    configAliens(2, 10, 'invader', 'fly_invader', [0, 1, 2, 3], new_enemies, 'UP');
+    configAliens(2, 10, 'enemy', 'fly_enemy', [0, 1], new_enemies, 'UP', 2, 0); 
     new_enemies.x = 20;
-    new_enemies.y = 250;   
+    new_enemies.y = game.world.height / 2 - 15;   
 }
 
 /// This function creates the aliens
@@ -230,22 +229,27 @@ function createAliens(){
 // tiles_array: array with the tiles index in the animation
 // group: group to add the aliens
 ///
-function configAliens(lines, rows, sprite_name, animation_name, tiles_array, group) {
+function configAliens(lines, rows, sprite_name, animation_name, tiles_array, group, direction = 'DOWN', line_shift = 0, row_shift = 0) {
+    var directions = {
+        'UP': 180,
+        'DOWN': 0
+    }
+
     group.x = 0;
     group.y = 0; 
-    for(var y = 0; y < lines; y++){
-        for(var x = 0; x < rows; x++){
+    for(var y = line_shift; y < lines + line_shift; y++){
+        for(var x = row_shift; x < rows + row_shift; x++){
             var alien = group.create(x * 48, y * 32, sprite_name);
 
-            if(y < lines / 2) {
-                alien.angle = 180;
+            alien.angle = directions[direction];
+            if(direction == 'UP'){
                 alien.x = group.x + x * 48;
                 alien.y = group.y - (32 + y * 48);
             }
-            else {
+            else if(direction == 'DOWN') {
                 alien.x = group.x + x * 48;
                 alien.y = group.y + (32 + y * 48);
-            }
+            }           
 
             alien.anchor.setTo(0.5, 0.5);
             alien.animations.add(animation_name, tiles_array, 20, true);
@@ -257,15 +261,19 @@ function configAliens(lines, rows, sprite_name, animation_name, tiles_array, gro
 
     var tween = game.add.tween(group).to({x : 350}, 5000, Phaser.Easing.Quadratic.Out, true, 0, 100, true);
 
-    //tween.onLoop.add(descend, this);
+    tween.onRepeat.add(descend, this);
 }
 
-/*
 /// This function makes the aliens descend
+// group: group to be aplied
 ///
-function descend() {
-    aliens.y += 10;
-} */
+function descend(group) {
+    var dir = {
+        'UP': -1,
+        'DOWN': 1
+    }
+    group.y += 10 * dir[direction];
+}
 
 /// This function creates the aliens animation to make their explosions
 // invader: the alien who will have the explosion
