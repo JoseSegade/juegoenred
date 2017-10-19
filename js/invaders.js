@@ -31,7 +31,8 @@ var new_enemies;
 var bullets;
 var bullets2;
 
-var bulletTime = 0;
+var bulletTime1 = 0;
+var bulletTime2 = 0;
 var explosions;
 var starfield;
 
@@ -154,12 +155,9 @@ function create(){
 
     // Habilitamos los controles de las naves
     cursors = game.input.keyboard.createCursorKeys();
-    cursors2 [0] = game.input.keyboard.addKey(Phaser.Keyboard.A);
-    cursors2 [1] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 
     // Asignamos al Jugador1 el botón de disparo 0 y al jugador2 el botón de disparo SPACEBAR
-    fireButton = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_0);
-    fireButton2 = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);    
+    fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     // Asignamos un tiempo de espera para empezar la partida
     firingTimer = game.time.now + 1000;
@@ -172,40 +170,9 @@ function update() {
     if(player.alive && player2.alive) {
         // Reseteamos la posicion del jugador1, despues comprobamos las teclas de movimiento
         player.body.velocity.setTo(0, 0);
-        // Reseteamos la posicion del jugador2, despues comprobamos las teclas de movimiento
-        player2.body.velocity.setTo(0, 0);
-
-        if(cursors.left.isDown) {
-            if(player.body.x > 200) {
-                player.body.velocity.x = -200;            
-            }
-        }
-        else if(cursors.right.isDown) {
-            if(player.body.x < game.world.width - 200) {
-                player.body.velocity.x = 200;            
-            }
-        }
-
-        if(cursors2[0].isDown) {
-            if(player2.body.x > 200) {
-                player2.body.velocity.x = -200;            
-            }
-        }
-        else if(cursors2[1].isDown) {
-            if(player2.body.x < game.world.width - 200) {
-                player2.body.velocity.x = 200;
-            }
-        }
-
-
-        // Disparos
-        if(fireButton.isDown) {
-            player = fireBullet(player, 'UP');
-        }        
-        // Disparos
-        if(fireButton2.isDown) {
-            player2 = fireBullet(player2, 'DOWN');
-        }
+        
+        updatePlayer1();
+        updatePlayer2();
 
         var currentTime = game.time.now;
         if(currentTime > firingTimer && currentTime > waitTimer) {
@@ -333,27 +300,33 @@ function fireBullet(player, direction) {
         'DOWN': bullets2
     }
 
-    if (game.time.now > bulletTime)
+    if (game.time.now > bulletTime1 && direction == 'UP')
     {
         // Cogemos la primera bala de la piscina
         if(direction in directions) {
             bullet = directions[direction].getFirstExists(false);
         }
 
-        if (bullet && direction == 'UP')
+        if (bullet)
         {
             //  Disparamos la bala
             bullet.reset(player.x, player.y + 8);
             bullet.body.velocity.y = -800;
-            bulletTime = game.time.now + 1000;
+            bulletTime1 = game.time.now + 1000;
+        }        
+    }
+    else if(game.time.now > bulletTime2 && direction == 'DOWN') {
+        // Cogemos la primera bala de la piscina
+        if(direction in directions) {
+            bullet = directions[direction].getFirstExists(false);
         }
-        else if (bullet && direction == 'DOWN')
-        {
+
+        if (bullet) {
             //  Disparamos la bala
             bullet.angle = 180;
             bullet.reset(player.x, player.y +30);
             bullet.body.velocity.y = 800;
-            bulletTime = game.time.now + 1000;
+            bulletTime2 = game.time.now + 1000;
         }
     }
 
@@ -363,7 +336,7 @@ function fireBullet(player, direction) {
 /// This function makes random bullets shooted by the aliens that are alive
 ///
 function enemyFires() {
-    if(enemyBullets.length == 0) {
+    if(enemyBullets.lefbungth == 0) {
         enemyBullets.createMultiple(30, 'enemy_bullet');
         enemyBullets.setAll('anchor.x', 0.5);
         enemyBullets.setAll('anchor.y', 1);
@@ -723,3 +696,61 @@ function restart() {
 function resetBullet() {
     bullet.kill();
 }
+
+function updatePlayer1() {
+    var output = "['SKIP']";
+    //  Detectamos las teclas del jugador1
+    if(cursors.left.isDown) {
+        if(player.body.x > 200) {
+            player.body.velocity.x = -200;            
+        }
+        output = "['MOVE_LEFT']";
+    }
+    else if(cursors.right.isDown) {
+        if(player.body.x < game.world.width - 200) {
+            player.body.velocity.x = 200;            
+        }
+        output = "['MOVE_RIGHT']";
+    }
+
+    // Disparos
+    if(fireButton.isDown) {
+        player = fireBullet(player, 'UP');
+        output += ",['SHOOT']";
+    }
+    output += ";";
+}
+
+/// This function will get the key from the connected computer to know what the player2 will do
+///
+function updatePlayer2() {
+    // Reseteamos la posicion del jugador2, despues comprobamos las teclas de movimiento
+    player2.body.velocity.setTo(0, 0);
+
+    var functions_player2 = {
+        'SHOOT': function() {
+            player2 = fireBullet(player2, 'DOWN');
+        },
+        'MOVE_LEFT': function() {
+            if(player2.body.x > 200) {
+                player2.body.velocity.x = -200;            
+            }
+        },
+        'MOVE_RIGHT': function() {
+            if(player2.body.x < game.world.width - 200) {
+                player2.body.velocity.x = 200;            
+            }
+        },
+        'SKIP': function() {
+            return 0;
+        }
+    }
+
+    //  We will simulate a key
+    var key = ['MOVE_LEFT', 'MOVE_RIGHT', 'SKIP', 'SHOOT'];
+    var random = game.rnd.integerInRange(0, 2);
+    functions_player2[key[random]]();
+    random = game.rnd.integerInRange(2, 3);
+    functions_player2[key[random]]();
+}
+
