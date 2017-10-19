@@ -46,9 +46,14 @@ var scoreString_player2 = '';
 var scoreText_player2;
 
 var firingTimer = 0;
+var waitTimer = 0;
 var stateText;
 var livingEnemies = [];
 var enemyBullets;
+
+//Nos sirven para verificar que que han sido tocados por los contrarios
+var deathplayer = false;
+var deathplayer2 = false;
 
 function create(){
     // Creación de la física del juego tipo arcade
@@ -202,7 +207,8 @@ function update() {
             player2 = fireBullet(player2, 'DOWN');
         }
 
-        if(game.time.now > firingTimer) {
+        var currentTime = game.time.now;
+        if(currentTime > firingTimer && currentTime > waitTimer) {
             enemyFires();
         }
 
@@ -223,6 +229,12 @@ function update() {
         game.physics.arcade.overlap(enemyBullets, player2, enemyHitsPlayer, null, this);
         // Detectamos las balas del jugador1 con el jugador2
         game.physics.arcade.overlap(bullets, player2, enemyHitsPlayer, null, this);
+
+        // Detectamos las colisiones entre enemigos y jugador
+        game.physics.arcade.overlap(aliens, player, enemyReachPlayer, null, this);
+        // Detectamos las colisiones entre enemigos y jugador2
+        game.physics.arcade.overlap(new_enemies, player2, enemyReachPlayer, null, this);
+        
         
     }
 }
@@ -416,6 +428,7 @@ function collisionHandler(bullet, alien) {
             scoreText_player2.text = scoreString_player2 + score_player2;
             calculateWinner();            
         }
+        
     }
     else {
         // Aumentamos la puntuacion o la disminuimos segun si el alien es enemigo o aliado
@@ -474,6 +487,137 @@ function calculateWinner() {
 // player: the player game object
 // bullet: the bullet game object
 ///
+
+//Probando cuando los enemigos llegan a la posición del jugador
+function enemyReachPlayer(player, alien){
+
+    if(player.body.y > game.world.height / 2 && deathplayer == false) {
+        // Creamos la explosion
+        var explosion = explosions.getFirstExists(false);
+        explosion.reset(player.body.x, player.body.y);
+        explosion.play('explosion', 30, false, true);
+        
+            live = lives.getFirstAlive();
+            
+            if(live) {
+                live.kill();
+                //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
+                enemyBullets.callAll('kill');
+                waitTimer = game.time.now + 2000;
+                deathplayer = true;
+                relocateALL();
+            }
+
+            // Si el jugador se muere
+            if(lives.countLiving() < 1) {
+                player.kill();
+                enemyBullets.callAll('kill');
+                deathplayer = true;
+                showText(deathplayer, deathplayer2);
+                //stateText.text = 'YOU DIED! \n Click to restart';
+               // stateText.visible = true;
+
+            }
+        
+    }
+    else if(deathplayer2 == false){
+
+        // Creamos la explosion
+        var explosion = explosions.getFirstExists(false);
+        explosion.reset(player.body.x, player.body.y);
+        explosion.play('explosion', 30, false, true);
+
+            live2 = lives2.getFirstAlive()
+            
+            if(live2) {
+                live2.kill();
+                //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
+                enemyBullets.callAll('kill');
+                waitTimer = game.time.now + 2000;
+                deathplayer2 = true;
+                relocateALL();
+            }
+
+            // Si el jugador se muere
+            if(lives2.countLiving() < 1) {
+                player2.kill();
+                enemyBullets.callAll('kill');
+                deathplayer = true;
+                showText(deathplayer, deathplayer2);
+                //stateText.text = "Your enemy died \n Click to restart";
+                //stateText.visible = true;
+            }      
+    }
+}
+
+
+function showText(deathplayer = false,  deathplayer2 = false){
+    if(deathplayer == true && deathplayer2 == true)
+    {
+        stateText.text = "Both die \n Click to restart";
+        stateText.visible = true;
+    }
+    else if(deathplayer2 == true && deathplayer == false)
+    {
+        stateText.text = "Your enemy died \n Click to restart";
+        stateText.visible = true;
+    }
+    else if(deathplayer2 == false && deathplayer == true)
+    {
+        stateText.text = "You DIED \n Click to restart";
+        stateText.visible = true;
+    }
+
+    // La funcion para reiniciar
+    game.input.onTap.addOnce(restart, this);
+}
+
+//Recolocamos todos los enemigos vivos con la función forEach
+function relocateALL(){
+    var x = 0;
+    var y = 0;
+
+    aliens.forEach(function(alien){
+
+        aliens.x = 0;
+        aliens.y = 0; 
+        alien.x = aliens.x + x * 48 + (30 * x);
+        alien.y = aliens.y + (32 + y * 48);
+        x++;
+        if(x>=8){
+            y++;
+            x = 0;
+        }
+             
+    });
+
+    aliens.x = 20;
+    aliens.y = game.world.height / 2 + 15;
+
+    x = 0;
+    y = 0;
+
+    new_enemies.forEach(function(enemies){
+      
+        new_enemies.x = 0;
+        new_enemies.y = 0; 
+        enemies.x = new_enemies.x + x * 48 + (30 * x);
+        enemies.y = new_enemies.y - (32 + y * 48);
+        x++;
+        if(x>=8){
+            y++;
+            x = 0;
+        }
+    });
+
+
+   new_enemies.x = 20;
+   new_enemies.y = game.world.height / 2 - 15;
+
+    deathplayer = false;
+    deathplayer2 = false;
+}
+
 function enemyHitsPlayer(player, bullet) {
     bullet.kill();
 
@@ -487,6 +631,10 @@ function enemyHitsPlayer(player, bullet) {
         
         if(live) {
             live.kill();
+            //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
+            enemyBullets.callAll('kill');
+            waitTimer = game.time.now + 2000;
+
         }
 
         // Si el jugador se muere
@@ -506,6 +654,10 @@ function enemyHitsPlayer(player, bullet) {
         
         if(live2) {
             live2.kill();
+            //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
+            enemyBullets.callAll('kill');
+            waitTimer = game.time.now + 2000;
+
         }
 
         // Si el jugador se muere
@@ -554,7 +706,11 @@ function restart() {
     score_player2 = 0;
     scoreText_player2.text = scoreString_player2 + score_player2;
     
-    firingTimer = game.time.now + 1000;   
+    firingTimer = game.time.now + 1000;  
+    waitTimer = 0; 
+
+    deathplayer = false;
+    deathplayer2 = false;
 
     // Revivimos al jugador
     player.revive();
