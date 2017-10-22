@@ -10,6 +10,9 @@ function preload() {
     game.load.spritesheet('explosion', 'assets/explode.png', 128, 128);
     game.load.image('starfield', 'assets/starfield.png');
     game.load.image('background', 'assets/background2.png');
+    game.load.spritesheet('plane', 'assets/volador432x32.png', 32, 32);
+    game.load.spritesheet('deathplane', 'assets/DeadPlane.png', 32, 32);
+    game.load.spritesheet('power','assets/powerup.png',32,32);
 }
 
 //Definimos los jugadores del juego (2)
@@ -27,6 +30,12 @@ var lives2;
 //Enemigos
 var aliens;
 var new_enemies;
+//Avión de recompensa
+var plane;
+var deathplane = false;
+var isplane = true;
+// power up que suelta el avión
+var power;
 //Balas de cada personaje
 var bullets;
 var bullets2;
@@ -46,6 +55,7 @@ var score_player2 = 0;
 var scoreString_player2 = '';
 var scoreText_player2;
 
+var planeTimer = 0;
 var firingTimer = 0;
 var waitTimer = 0;
 var stateText;
@@ -114,8 +124,19 @@ function create(){
     new_enemies.enableBody = true;
     new_enemies.physicsBodyType = Phaser.Physics.ARCADE;
 
+    // Avión de recompensa
+    plane = game.add.group();
+    plane.enableBody = true;
+    plane.physicsBodyType = Phaser.Physics.ARCADE;
+
+    //Power Up
+    power = game.add.sprite(-50, -50, 'power');
+    power.anchor.setTo(0.5, 0.5);
+    game.physics.enable(power, Phaser.Physics.ARCADE);
+
     // Creamos los enemigos dentro de los grupos
     createAliens();
+    createPlane();
 
     // La puntuación del jugador1
     scoreString_player1 = 'Score Player 1: ';
@@ -159,25 +180,36 @@ function create(){
     // Asignamos al Jugador1 el botón de disparo 0 y al jugador2 el botón de disparo SPACEBAR
     fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
+    //Cursores del jugador2 para la practica 2
+    cursors2 [0] = game.input.keyboard.addKey(Phaser.Keyboard.A);
+    cursors2 [1] = game.input.keyboard.addKey(Phaser.Keyboard.D);
+
+    fireButton2 = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_0);
+
     // Asignamos un tiempo de espera para empezar la partida
     firingTimer = game.time.now + 1000;
+
+    //Tiempo de espera de la avioneta
+    planeTimer = game.time.now + 1500;
 }
 
 function update() {
     // Movimiento del escenario de fondo
     starfield.tilePosition.y += 2;
 
+    movePlane();
+
     if(player.alive && player2.alive) {
         // Reseteamos la posicion del jugador1, despues comprobamos las teclas de movimiento
         player.body.velocity.setTo(0, 0);
         
         updatePlayer1();
-        updatePlayer2();
+        updatePlayer2Bis();
 
-        var currentTime = game.time.now;
+       /* var currentTime = game.time.now;
         if(currentTime > firingTimer && currentTime > waitTimer) {
             enemyFires();
-        }
+        }*/
 
         // Detectamos las colisiones
         game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
@@ -201,7 +233,11 @@ function update() {
         game.physics.arcade.overlap(aliens, player, enemyReachPlayer, null, this);
         // Detectamos las colisiones entre enemigos y jugador2
         game.physics.arcade.overlap(new_enemies, player2, enemyReachPlayer, null, this);
-        
+        // Detectamos las colisiones entre jugadores y avioneta
+        isplane = true;
+        game.physics.arcade.overlap(bullets, plane, collisionHandler, null, this);
+        game.physics.arcade.overlap(bullets2, plane, collisionHandler, null, this);
+        isplane = false;
         
     }
 }
@@ -267,6 +303,61 @@ function configAliens(lines, rows, x_between, sprite_name, animation_name, tiles
         }
     }    
 }
+
+function createPlane(){
+    plane.x = 0;
+    plane.y = 0;
+
+    var avioneta = plane.create(-50, 0, 'plane');
+    avioneta.anchor.setTo(0.5, 0.5);
+    avioneta.animations.add('fly_plane', [0,1], 20, true);
+    avioneta.animations.add('death_plane', [2], 20, true);
+    avioneta.play('fly_plane');
+    // ¿El default no es true?
+    avioneta.body.moves = true; 
+    avioneta.scale.setTo(1.5,1.5);
+    //avioneta.body.velocity.x = 100;
+    plane.x = -50;
+    plane.y = game.world.height / 2;
+
+    //var tween_plane = game.add.tween(plane).to({x : 350}, 7500, Phaser.Easing.Quadratic.Out, true, 0, 100, true);  
+}
+
+function movePlane(){
+
+    plane.forEach(function(avion){
+        
+        var currentTime = game.time.now;
+        if(currentTime > planeTimer && avion.body.x <= game.world.width + 50 && !deathplane){
+            avion.body.velocity.x = 100;
+        }
+        else if(avion.body.x > game.world.width + 50 && !deathplane){
+            avion.body.x = -50;
+            avion.body.velocity.x = 0;
+            planeTimer = game.time.now + 3000;
+        }
+        else if(deathplane){
+            avion.body.x = -50;
+            avion.body.velocity.x = 0;
+            planeTimer = game.time.now + 3000;
+            deathplane = false;
+        }
+        
+    });
+    
+}
+
+function powerUp(direction, avion){
+    var dir = {
+        'UP': -1,
+        'DOWN': 1
+    }
+    power.body.y = avion.body.y;
+    power.body.x = avion.body.x;
+    power.body.velocity.y = 100 * dir[direction];
+}
+
+
 
 /// This function makes the aliens descend
 // group: group to be aplied
@@ -371,7 +462,7 @@ function enemyFires() {
 ///
 function collisionHandler(bullet, alien) {
     // Si la bala la dispara el jugador1
-    if(bullet.body.velocity.y < 0) {  
+    if(bullet.body.velocity.y < 0 && !isplane) {  
         // Aumentamos la puntuacion o la disminuimos segun si el alien es enemigo o aliado
         if(alien.angle != 0){
             score_player1 -= 50;
@@ -403,7 +494,7 @@ function collisionHandler(bullet, alien) {
         }
         
     }
-    else {
+    else if(!isplane){
         // Aumentamos la puntuacion o la disminuimos segun si el alien es enemigo o aliado
         if(alien.angle == 0){
             score_player2 -= 50;
@@ -433,6 +524,25 @@ function collisionHandler(bullet, alien) {
             scoreText_player1.text = scoreString_player1 + score_player1;
             calculateWinner();
         }
+    }
+
+    else{
+        bullet.kill();
+
+        if(bullet.body.velocity.y < 0){
+            powerUp('DOWN', alien);
+            deathplane = true;
+            //deathplane = true;
+           // movePlane();
+        }
+        else {
+            powerUp('UP', alien);
+            deathplane = true;
+            //alien.play('death_plane');
+            //deathplane = true;
+            //movePlane();
+        }
+
     }
 }
 
@@ -583,6 +693,11 @@ function relocateALL(){
         }
     });
 
+    plane.forEach(function(avion){
+        avion.body.x = -50;
+        planeTimer = game.time.now + 2000;
+    })
+
 
    new_enemies.x = 20;
    new_enemies.y = game.world.height / 2 - 15;
@@ -674,6 +789,9 @@ function restart() {
     new_enemies.removeAll();
     createAliens();
 
+    plane.removeAll();
+    createPlane();
+
     score_player1 = 0;
     scoreText_player1.text = scoreString_player1 + score_player1;
     score_player2 = 0;
@@ -752,5 +870,33 @@ function updatePlayer2() {
     functions_player2[key[random]]();
     random = game.rnd.integerInRange(2, 3);
     functions_player2[key[random]]();
+    
+}
+//Función para la práctica 2 de partida uno contra uno en el mismo ordenador
+function updatePlayer2Bis() {
+    var output = "['SKIP']";
+    //  Detectamos las teclas del jugador1
+    if(cursors2[0].isDown) {
+        if(player2.body.x > 200) {
+            player2.body.velocity.x = -200;            
+        }
+        output = "['MOVE_LEFT']";
+    }
+    else if(cursors2[1].isDown) {
+        if(player2.body.x < game.world.width - 200) {
+            player2.body.velocity.x = 200;            
+        }
+        output = "['MOVE_RIGHT']";
+    }
+    else if(cursors2[0].isUp && cursors2[1].isUp){
+        player2.body.velocity.x = 0;
+    }
+
+    // Disparos
+    if(fireButton2.isDown) {
+        player2 = fireBullet(player2, 'DOWN');
+        output += ",['SHOOT']";
+    }
+    output += ";";
 }
 
