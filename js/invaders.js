@@ -13,6 +13,8 @@ function preload() {
     game.load.spritesheet('plane', 'assets/volador432x32.png', 32, 32);
     game.load.spritesheet('deathplane', 'assets/DeadPlane.png', 32, 32);
     game.load.spritesheet('power','assets/powerup.png',32,32);
+    game.load.spritesheet('poweravatar', 'assets/StanleyTheBugmanDefinitivo32x32.png', 32,32);
+    game.load.image('disparoavatar', 'assets/Disparoavatar.png');
 }
 
 //Definimos los jugadores del juego (2)
@@ -39,6 +41,15 @@ var power;
 //Balas de cada personaje
 var bullets;
 var bullets2;
+// Avatar del power up
+var avatar;
+var avatarbullet;
+var avatarbullet2;
+// boleano del avatar para que dispare cuando el buleano esté en pantalla
+var called1 = false;
+var called2 = false;
+// boleano para que calcule las colisiones del avatar
+var avatarcalled = false;
 
 var bulletTime1 = 0;
 var bulletTime2 = 0;
@@ -58,6 +69,7 @@ var scoreText_player2;
 var planeTimer = 0;
 var firingTimer = 0;
 var waitTimer = 0;
+var avatarTimer = 0;
 var stateText;
 var livingEnemies = [];
 var enemyBullets;
@@ -103,6 +115,26 @@ function create(){
     enemyBullets.setAll('outOfBoundsKill', true);
     enemyBullets.setAll('checkWorldBounds', true);
 
+    // Balas del avatar1
+    avatarbullet = game.add.group();
+    avatarbullet.enableBody = true;
+    avatarbullet.physicsBodyType = Phaser.Physics.ARCADE;
+    avatarbullet.createMultiple(30, 'enemy_bullet');
+    avatarbullet.setAll('anchor.x', 0.5);
+    avatarbullet.setAll('anchor.y', 1);
+    avatarbullet.setAll('outOfBoundsKill', true);
+    avatarbullet.setAll('checkWorldBounds', true);
+
+    // Balas del avatar2
+    avatarbullet2 = game.add.group();
+    avatarbullet2.enableBody = true;
+    avatarbullet2.physicsBodyType = Phaser.Physics.ARCADE;
+    avatarbullet2.createMultiple(30, 'enemy_bullet');
+    avatarbullet2.setAll('anchor.x', 0.5);
+    avatarbullet2.setAll('anchor.y', 1);
+    avatarbullet2.setAll('outOfBoundsKill', true);
+    avatarbullet2.setAll('checkWorldBounds', true);
+
     // El jugador 1
     player = game.add.sprite(400, game.world.height - 50, 'player_ship');
     player.anchor.setTo(0.5, 0.5);
@@ -128,6 +160,31 @@ function create(){
     plane = game.add.group();
     plane.enableBody = true;
     plane.physicsBodyType = Phaser.Physics.ARCADE;
+
+    // Avatar del power up
+    avatar = game.add.group();
+    avatar.enableBody = true;
+    avatar.physicsBodyType = Phaser.Physics.ARCADE;
+
+    // Balas del avatar del power up
+    avatarbullet = game.add.group();
+    avatarbullet.enableBody = true;
+    avatarbullet.physicsBodyType = Phaser.Physics.ARCADE;
+    avatarbullet.createMultiple(30, 'disparoavatar');
+    avatarbullet.setAll('anchor.x', -1.2);
+    avatarbullet.setAll('anchor.y', 1);
+    avatarbullet.setAll('outOfBoundsKill', true);
+    avatarbullet.setAll('checkWorldBounds', true);
+
+    // Balas del avatar del power up
+    avatarbullet2 = game.add.group();
+    avatarbullet2.enableBody = true;
+    avatarbullet2.physicsBodyType = Phaser.Physics.ARCADE;
+    avatarbullet2.createMultiple(30, 'disparoavatar');
+    avatarbullet2.setAll('anchor.x', -0.6);
+    avatarbullet2.setAll('anchor.y', -2);
+    avatarbullet2.setAll('outOfBoundsKill', true);
+    avatarbullet2.setAll('checkWorldBounds', true);
 
     //Power Up
     power = game.add.sprite(-50, -50, 'power');
@@ -190,14 +247,30 @@ function create(){
     firingTimer = game.time.now + 1000;
 
     //Tiempo de espera de la avioneta
-    planeTimer = game.time.now + 1500;
+    planeTimer = game.time.now + 2000;
 }
 
 function update() {
     // Movimiento del escenario de fondo
     starfield.tilePosition.y += 2;
 
+    var currentTime = game.time.now;
+
     movePlane();
+    if(called1){
+        moveAvatar('RIGHT');
+        if(currentTime > avatarTimer) {
+            avatarFires(avatarbullet, 'UP');
+        }
+    }
+    if(called2){
+        moveAvatar('LEFT');
+        if(currentTime > avatarTimer) {
+            avatarFires(avatarbullet2, 'DOWN');
+        }
+    }
+    
+    
 
     if(player.alive && player2.alive) {
         // Reseteamos la posicion del jugador1, despues comprobamos las teclas de movimiento
@@ -210,6 +283,7 @@ function update() {
         if(currentTime > firingTimer && currentTime > waitTimer) {
             enemyFires();
         }*/
+
 
         // Detectamos las colisiones
         game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
@@ -238,7 +312,25 @@ function update() {
         game.physics.arcade.overlap(bullets, plane, collisionHandler, null, this);
         game.physics.arcade.overlap(bullets2, plane, collisionHandler, null, this);
         isplane = false;
-        
+        // Detectamos quien ha cogido el power up
+        if(called1 == false){
+            game.physics.arcade.overlap(power, player, impactHandler, null, this);
+        }
+        if(called2 == false){
+            game.physics.arcade.overlap(power, player2, impactHandler, null, this);            
+        }
+        // Detectamos los impactos con el avatar contrario
+        if(called1 == true){
+            game.physics.arcade.overlap(bullets2, avatar, avatarHandler, null, this); 
+        }
+        if(called2 == true){
+            game.physics.arcade.overlap(bullets, avatar, avatarHandler, null, this);         
+        }
+        // Detectamos colisiones entre las balas de los avatares y los jugadores
+        avatarcalled = true;
+        game.physics.arcade.overlap(avatarbullet, player2, enemyHitsPlayer, null, this);
+        game.physics.arcade.overlap(avatarbullet2, player, enemyHitsPlayer, null, this);
+        avatarcalled = false;
     }
 }
 
@@ -303,14 +395,14 @@ function configAliens(lines, rows, x_between, sprite_name, animation_name, tiles
         }
     }    
 }
-
+// Crea el plano con sus respectivas animaciones
 function createPlane(){
     plane.x = 0;
     plane.y = 0;
 
     var avioneta = plane.create(-50, 0, 'plane');
     avioneta.anchor.setTo(0.5, 0.5);
-    avioneta.animations.add('fly_plane', [0,1], 20, true);
+    avioneta.animations.add('fly_plane', [0,1], 10, true);
     avioneta.animations.add('death_plane', [2], 20, true);
     avioneta.play('fly_plane');
     // ¿El default no es true?
@@ -322,7 +414,38 @@ function createPlane(){
 
     //var tween_plane = game.add.tween(plane).to({x : 350}, 7500, Phaser.Easing.Quadratic.Out, true, 0, 100, true);  
 }
+// Crea el avatar cuando un jugador del tablero ha cogido un power up
+// (Solo puede coger un power up a la vez no pudiendo acumularse)
+function createAvatar(direction){
+    var dir = {
+        'Player1' : 1,
+        'Player2': 2
+    }
+    avatar.x = -50;
+    avatar.y =  game.world.height / 2;
 
+    var av = avatar.create(-50, 0, 'poweravatar');
+    av.anchor.setTo(0.5, 0.5);
+    av.animations.add('avatarwalk', [0,1,2,3,4], 10, true);
+    av.play('avatarwalk');
+    // ¿El default no es true?
+    av.body.moves = true; 
+    av.scale.setTo(1.5,1.5);
+    //avioneta.body.velocity.x = 100;
+    if(dir[direction] == 1){
+        avatar.x = -50;
+        avatar.y =   player.y - 50;
+    }
+    else{
+        av.angle = 180;
+        avatar.x = game.world.width + 50;
+        avatar.y =  player2.y + 50;       
+    }
+
+}
+
+// Movemos el avión en la zona central del tablero, cualquier jugador puede alcanzarlo
+//el primero que lo haga provocará que genere un power up 
 function movePlane(){
 
     plane.forEach(function(avion){
@@ -335,6 +458,7 @@ function movePlane(){
             avion.body.x = -50;
             avion.body.velocity.x = 0;
             planeTimer = game.time.now + 3000;
+            //called = false;
         }
         else if(deathplane){
             avion.body.x = -50;
@@ -347,6 +471,37 @@ function movePlane(){
     
 }
 
+//Movemos al avatar en la dirección correspondiente según el lugar donde tenga que salir
+// y aumentamos su velocidad así como lo eliminamos cuando sale del canvas
+function moveAvatar(direction){
+    var dir = {
+        'LEFT': -1,
+        'RIGHT' : 1
+    }
+    avatar.forEachAlive(function(av){
+        
+        if(av.body.x <= game.world.width + 50  && dir[direction] == 1){
+            av.body.velocity.x = 100;
+        }
+        else if(av.body.x > game.world.width + 50 && dir[direction] == 1){
+            av.kill();
+            called1 = false;
+            console.log('called1 cambiado a false');
+        }
+        else if(av.body.x > -50 && dir[direction] == -1){
+            av.body.velocity.x = -100;
+        }
+        else if(av.body.x <= -50 && dir[direction] == -1){
+            av.kill();
+            called2 = false;
+            console.log('called2 cambiado a false');
+        }
+        
+    });
+}
+
+//Indica la posición desde donde se inicia el power up, en este caso la posición del
+//avión cuando es alcanzado por una bala.
 function powerUp(direction, avion){
     var dir = {
         'UP': -1,
@@ -456,6 +611,62 @@ function enemyFires() {
     }
 }
 
+/// This function makes bullets shooted by the avatars that are alive
+///
+function avatarFires(avbullet, direction) {
+    var dir = {
+        'UP' : -1,
+        'DOWN' : 1
+    }
+    if(dir[direction] == -1){
+        if(avbullet.lefbungth == 0) {
+            avbullet.createMultiple(30, 'disparoavatar');
+            avbullet.setAll('anchor.x', 0.1);
+            avbullet.setAll('anchor.y', 1);
+            avbullet.setAll('outOfBoundsKill', true);
+            avbullet.setAll('checkWorldBounds', true);
+        }
+    }
+    else{
+        if(avbullet.lefbungth == 0) {
+            avbullet.createMultiple(30, 'disparoavatar');
+            avbullet.setAll('anchor.x', 0.1);
+            avbullet.setAll('anchor.y', 2);
+            avbullet.setAll('outOfBoundsKill', true);
+            avbullet.setAll('checkWorldBounds', true);
+        }
+    }
+    
+    // Cogemos la primera bala de la piscina de las balas enemigas
+    var bullet = avbullet.getFirstExists(false);
+    bullet.scale.setTo(0.35, 0.35);
+
+    var livingavatar = [];
+
+    avatar.forEachAlive(function(av){
+        // Colocamos cada enemigo vivo en un array
+        livingavatar.push(av);
+    });
+
+    if(avbullet && livingavatar.length > 0) {
+        for(var i=0 ; i< livingavatar.length ; i++){
+             // Seleccionamos un alien aleatoriamente
+        var shooter = livingavatar[i];
+        // Disparamos una bala
+        bullet.reset(shooter.body.x, shooter.body.y);
+        if(shooter.body.y > game.world.height/2){
+            game.physics.arcade.moveToObject(bullet,player2,250);
+        }
+        else{
+            game.physics.arcade.moveToObject(bullet,player,250);
+        }
+        
+        avatarTimer = game.time.now + 1500;
+        }
+
+    }
+}
+
 /// This function manages the collision between a players bullet and an alien
 // Bullet: the bullet game object
 // Alien: the alien game object
@@ -544,6 +755,68 @@ function collisionHandler(bullet, alien) {
         }
 
     }
+
+}
+
+//Calculamos si el jugador ha disparado e interceptado al avatar y aumentamos la puntuación
+function avatarHandler(bullet, av){
+    if(bullet.body.velocity.y < 0){
+      //  avatar.forEachAlive(function(avat){
+            if(av.position.y < game.world.height/2){
+                av.kill();
+                called2 = false;
+                // Creamos la explosion
+                var explosion = explosions.getFirstExists(false);
+                explosion.reset(av.body.x, av.body.y);
+                explosion.play('explosion', 30, false, true);
+
+                score_player1 += 250;
+                scoreText_player1.text = scoreString_player1 + score_player1;
+            }
+       // })
+    }
+
+    else {
+        //avatar.forEachAlive(function(avat){
+            if(av.position.y > game.world.height/2){
+                av.kill();
+                called1 = false;
+                // Creamos la explosion
+                var explosion = explosions.getFirstExists(false);
+                explosion.reset(av.body.x, av.body.y);
+                explosion.play('explosion', 30, false, true);
+
+                score_player2 += 250;
+                scoreText_player2.text = scoreString_player2 + score_player2;
+            }
+        //})
+    }
+}
+
+// Calculamos el si el jugador ha cogido el power up
+function impactHandler(poder, jugador){
+    
+    if(jugador.body.y > game.world.height/2){
+        if(!called1){
+            poder.x = -50;
+            poder.body.velocity.x = 0;
+            called1 = true;
+            //console.log('called1' + called1);
+            createAvatar('Player1');
+        }
+        
+        
+    }
+    else if(jugador.body.y < game.world.height/2){
+        if(!called2){
+            poder.x = -50;
+            poder.body.velocity.x = 0;
+            called2 = true;
+            //console.log('called2' + called2);
+            createAvatar('Player2');
+        }
+        
+    }
 }
 
 /// This function comparates the punctuations, the player who got more, the player who win
@@ -586,6 +859,9 @@ function enemyReachPlayer(player, alien){
                 live.kill();
                 //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
                 enemyBullets.callAll('kill');
+                avatar.callAll('kill');
+                avatarbullet.callAll('kill');
+                avatarbullet2.callAll('kill');
                 waitTimer = game.time.now + 2000;
                 deathplayer = true;
                 relocateALL();
@@ -595,6 +871,9 @@ function enemyReachPlayer(player, alien){
             if(lives.countLiving() < 1) {
                 player.kill();
                 enemyBullets.callAll('kill');
+                avatar.callAll('kill');
+                avatarbullet.callAll('kill');
+                avatarbullet2.callAll('kill');
                 deathplayer = true;
                 showText(deathplayer, deathplayer2);
                 //stateText.text = 'YOU DIED! \n Click to restart';
@@ -616,6 +895,9 @@ function enemyReachPlayer(player, alien){
                 live2.kill();
                 //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
                 enemyBullets.callAll('kill');
+                avatar.callAll('kill');
+                avatarbullet.callAll('kill');
+                avatarbullet2.callAll('kill');
                 waitTimer = game.time.now + 2000;
                 deathplayer2 = true;
                 relocateALL();
@@ -625,6 +907,9 @@ function enemyReachPlayer(player, alien){
             if(lives2.countLiving() < 1) {
                 player2.kill();
                 enemyBullets.callAll('kill');
+                avatar.callAll('kill');
+                avatarbullet.callAll('kill');
+                avatarbullet2.callAll('kill');
                 deathplayer = true;
                 showText(deathplayer, deathplayer2);
                 //stateText.text = "Your enemy died \n Click to restart";
@@ -633,7 +918,8 @@ function enemyReachPlayer(player, alien){
     }
 }
 
-
+//Muestra el texto correspondiente si los alien han golpeado a los dos jugadores 
+// a la vez o solo a uno y a otro no y no les quedan más vidas.
 function showText(deathplayer = false,  deathplayer2 = false){
     if(deathplayer == true && deathplayer2 == true)
     {
@@ -721,7 +1007,16 @@ function enemyHitsPlayer(player, bullet) {
             live.kill();
             //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
             enemyBullets.callAll('kill');
+            avatar.callAll('kill');
+            avatarbullet.callAll('kill');
+            avatarbullet2.callAll('kill');
+            score_player2 += 500;
+            scoreText_player2.text = scoreString_player2 + score_player2;
             waitTimer = game.time.now + 2000;
+            //Si avatarcalled entonces cambiamos a false
+            if(avatarcalled){
+                called2 = false;
+            }
 
         }
 
@@ -729,10 +1024,17 @@ function enemyHitsPlayer(player, bullet) {
         if(lives.countLiving() < 1) {
             player.kill();
             enemyBullets.callAll('kill');
-
+            avatar.callAll('kill');
+            avatarbullet.callAll('kill');
+            avatarbullet2.callAll('kill');
+            score_player2 += 500;
+            scoreText_player2.text = scoreString_player2 + score_player2;
             stateText.text = 'YOU DIED! \n Click to restart';
             stateText.visible = true;
-
+            //Si avatarcalled entonces cambiamos a false
+            if(avatarcalled){
+                called2 = false;
+            }
             // La funcion para reiniciar
             game.input.onTap.addOnce(restart, this);
         }
@@ -742,9 +1044,17 @@ function enemyHitsPlayer(player, bullet) {
         
         if(live2) {
             live2.kill();
+            score_player1 += 500;
+            scoreText_player1.text = scoreString_player1 + score_player1;
             //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
             enemyBullets.callAll('kill');
+            avatar.callAll('kill');
+            avatarbullet.callAll('kill');
+            avatarbullet2.callAll('kill');
             waitTimer = game.time.now + 2000;
+            if(avatarcalled){
+                called1 = false;
+            }
 
         }
 
@@ -752,23 +1062,29 @@ function enemyHitsPlayer(player, bullet) {
         if(lives2.countLiving() < 1) {
             player2.kill();
             enemyBullets.callAll('kill');
-
+            avatar.callAll('kill');
+            avatarbullet.callAll('kill');
+            avatarbullet2.callAll('kill');
+            score_player1 += 500;
+            scoreText_player1.text = scoreString_player1 + score_player1;
             stateText.text = "Your enemy died \n Click to restart";
             stateText.visible = true;
+            if(avatarcalled){
+                called1 = false;
+            }
 
             // La funcion para reiniciar
             game.input.onTap.addOnce(restart, this);
         }
     }
-    
-
-    
 
     // Si el jugador se muere
     if(lives.countLiving() < 1) {
         player.kill();
         enemyBullets.callAll('kill');
-
+        avatar.callAll('kill');
+        avatarbullet.callAll('kill');
+        avatarbullet2.callAll('kill');
         stateText.text = 'GAME OVER \n Click to restart';
         stateText.visible = true;
 
@@ -792,6 +1108,8 @@ function restart() {
     plane.removeAll();
     createPlane();
 
+    avatar.removeAll();
+
     score_player1 = 0;
     scoreText_player1.text = scoreString_player1 + score_player1;
     score_player2 = 0;
@@ -799,12 +1117,18 @@ function restart() {
     
     firingTimer = game.time.now + 1000;  
     waitTimer = 0; 
+    avatarTimer = 0;
 
     deathplayer = false;
     deathplayer2 = false;
 
+    called1 = false;
+    called2 = false;
+
     // Revivimos al jugador
     player.revive();
+    //Revivimos al jugador2
+    player2.revive();
     // Ocultamos el texto
     stateText.visible = false;
 }
