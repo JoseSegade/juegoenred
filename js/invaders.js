@@ -72,7 +72,9 @@ var waitTimer = 0;
 var avatarTimer = 0;
 var stateText;
 var livingEnemies = [];
+var livingEnemies2 = [];
 var enemyBullets;
+var enemyBullets2;
 
 //Nos sirven para verificar que que han sido tocados por los contrarios
 var deathplayer = false;
@@ -105,7 +107,7 @@ function create(){
     bullets2.setAll('outOfBoundsKill', true);
     bullets2.setAll('checkWorldBounds', true);
 
-    // Balas de los invaders enemigos
+    // Balas de los invaders enemigos del jugador 1
     enemyBullets = game.add.group();
     enemyBullets.enableBody = true;
     enemyBullets.physicsBodyType = Phaser.Physics.ARCADE;
@@ -114,6 +116,16 @@ function create(){
     enemyBullets.setAll('anchor.y', 1);
     enemyBullets.setAll('outOfBoundsKill', true);
     enemyBullets.setAll('checkWorldBounds', true);
+
+    // Balas de los invaders enemigos del jugador 2
+    enemyBullets2 = game.add.group();
+    enemyBullets2.enableBody = true;
+    enemyBullets2.physicsBodyType = Phaser.Physics.ARCADE;
+    enemyBullets2.createMultiple(30, 'enemy_bullet');
+    enemyBullets2.setAll('anchor.x', 0.5);
+    enemyBullets2.setAll('anchor.y', 1);
+    enemyBullets2.setAll('outOfBoundsKill', true);
+    enemyBullets2.setAll('checkWorldBounds', true);
 
     // Balas del avatar1
     avatarbullet = game.add.group();
@@ -279,10 +291,11 @@ function update() {
         updatePlayer1();
         updatePlayer2Bis();
 
-       /* var currentTime = game.time.now;
+        var currentTime = game.time.now;
         if(currentTime > firingTimer && currentTime > waitTimer) {
-            enemyFires();
-        }*/
+            enemyFires(enemyBullets, aliens, 'UP');
+            enemyFires(enemyBullets2, new_enemies, 'DOWN');
+        }
 
 
         // Detectamos las colisiones
@@ -291,6 +304,8 @@ function update() {
         game.physics.arcade.overlap(bullets, new_enemies, collisionHandler, null, this);
         // Detectamos las colisiones de los enemigos con el jugador1
         game.physics.arcade.overlap(enemyBullets, player, enemyHitsPlayer, null, this);
+        // Detectamos las colisiones de los enemigos con el jugador2
+        game.physics.arcade.overlap(enemyBullets2, player2, enemyHitsPlayer, null, this);
         // Detectamos las balas del jugador2 con el jugador1
         game.physics.arcade.overlap(bullets2, player, enemyHitsPlayer, null, this);
 
@@ -582,6 +597,7 @@ function fireBullet(player, direction) {
 /// This function makes random bullets shooted by the aliens that are alive
 ///
 function enemyFires() {
+    
     if(enemyBullets.lefbungth == 0) {
         enemyBullets.createMultiple(30, 'enemy_bullet');
         enemyBullets.setAll('anchor.x', 0.5);
@@ -589,8 +605,6 @@ function enemyFires() {
         enemyBullets.setAll('outOfBoundsKill', true);
         enemyBullets.setAll('checkWorldBounds', true);
     }
-    // Cogemos la primera bala de la piscina de las balas enemigas
-    var enemyBullet = enemyBullets.getFirstExists(false);
 
     livingEnemies.length = 0;
 
@@ -598,6 +612,9 @@ function enemyFires() {
         // Colocamos cada enemigo vivo en un array
         livingEnemies.push(alien);
     });
+
+    // Cogemos la primera bala de la piscina de las balas enemigas
+    var enemyBullet = enemyBullets.getFirstExists(false);
 
     if(enemyBullet && livingEnemies.length > 0) {
         var random = game.rnd.integerInRange(0, livingEnemies.length - 1);
@@ -607,6 +624,48 @@ function enemyFires() {
         // Disparamos una bala
         enemyBullet.reset(shooter.body.x, shooter.body.y);
         game.physics.arcade.moveToObject(enemyBullet,player,300);
+        firingTimer = game.time.now + 500;
+    }
+}
+
+function enemyFires(bullets, enemies, direction) {
+    var dir = {
+        'UP': -1,
+        'DOWN': 1
+    }
+    
+    if(bullets.lefbungth == 0) {
+        bullets.createMultiple(30, 'enemy_bullet');
+        bullets.setAll('anchor.x', 0.5);
+        bullets.setAll('anchor.y', 1);
+        bullets.setAll('outOfBoundsKill', true);
+        bullets.setAll('checkWorldBounds', true);
+    }
+
+    var livingaliens = [];    
+
+    enemies.forEachAlive(function(alien){
+        // Colocamos cada enemigo vivo en un array
+        livingaliens.push(alien);
+    });
+
+    // Cogemos la primera bala de la piscina de las balas enemigas
+    var enemyBullet = bullets.getFirstExists(false);
+
+    if(enemyBullet && livingaliens.length > 0) {
+        var random = game.rnd.integerInRange(0, livingaliens.length - 1);
+
+        // Seleccionamos un alien aleatoriamente
+        var shooter = livingaliens[random];
+        // Disparamos una bala
+        enemyBullet.reset(shooter.body.x, shooter.body.y);
+        if(dir[direction] == -1){
+            game.physics.arcade.moveToObject(enemyBullet,player,300);
+        }
+        else{
+            game.physics.arcade.moveToObject(enemyBullet,player2,300);
+        }
+        
         firingTimer = game.time.now + 500;
     }
 }
@@ -1007,11 +1066,14 @@ function enemyHitsPlayer(player, bullet) {
             live.kill();
             //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
             enemyBullets.callAll('kill');
+            enemyBullets2.callAll('kill');
             avatar.callAll('kill');
             avatarbullet.callAll('kill');
             avatarbullet2.callAll('kill');
-            score_player2 += 500;
-            scoreText_player2.text = scoreString_player2 + score_player2;
+            if(avatarcalled){
+                score_player2 += 500;
+                scoreText_player2.text = scoreString_player2 + score_player2;
+            }
             waitTimer = game.time.now + 2000;
             //Si avatarcalled entonces cambiamos a false
             if(avatarcalled){
@@ -1024,11 +1086,14 @@ function enemyHitsPlayer(player, bullet) {
         if(lives.countLiving() < 1) {
             player.kill();
             enemyBullets.callAll('kill');
+            enemyBullets2.callAll('kill');
             avatar.callAll('kill');
             avatarbullet.callAll('kill');
             avatarbullet2.callAll('kill');
-            score_player2 += 500;
-            scoreText_player2.text = scoreString_player2 + score_player2;
+            if(avatarcalled){
+                score_player2 += 500;
+                scoreText_player2.text = scoreString_player2 + score_player2;
+            }
             stateText.text = 'YOU DIED! \n Click to restart';
             stateText.visible = true;
             //Si avatarcalled entonces cambiamos a false
@@ -1044,10 +1109,13 @@ function enemyHitsPlayer(player, bullet) {
         
         if(live2) {
             live2.kill();
-            score_player1 += 500;
-            scoreText_player1.text = scoreString_player1 + score_player1;
+            if(avatarcalled){
+                score_player1 += 500;
+                scoreText_player1.text = scoreString_player1 + score_player1;
+            }
             //Añadimos un delay cuando nos matan de 2 segundos y eliminamos todas las balas
             enemyBullets.callAll('kill');
+            enemyBullets2.callAll('kill');
             avatar.callAll('kill');
             avatarbullet.callAll('kill');
             avatarbullet2.callAll('kill');
@@ -1062,11 +1130,14 @@ function enemyHitsPlayer(player, bullet) {
         if(lives2.countLiving() < 1) {
             player2.kill();
             enemyBullets.callAll('kill');
+            enemyBullets2.callAll('kill');
             avatar.callAll('kill');
             avatarbullet.callAll('kill');
             avatarbullet2.callAll('kill');
-            score_player1 += 500;
-            scoreText_player1.text = scoreString_player1 + score_player1;
+            if(avatarcalled){
+                score_player1 += 500;
+                scoreText_player1.text = scoreString_player1 + score_player1;
+            }
             stateText.text = "Your enemy died \n Click to restart";
             stateText.visible = true;
             if(avatarcalled){
@@ -1082,6 +1153,7 @@ function enemyHitsPlayer(player, bullet) {
     if(lives.countLiving() < 1) {
         player.kill();
         enemyBullets.callAll('kill');
+        enemyBullets2.callAll('kill');
         avatar.callAll('kill');
         avatarbullet.callAll('kill');
         avatarbullet2.callAll('kill');
@@ -1127,8 +1199,10 @@ function restart() {
 
     // Revivimos al jugador
     player.revive();
+    player.x = game.world.width/2;
     //Revivimos al jugador2
     player2.revive();
+    player2.x = game.world.width/2;
     // Ocultamos el texto
     stateText.visible = false;
 }
