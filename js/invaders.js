@@ -1,4 +1,14 @@
-var game = new Phaser.Game(800, 900, Phaser.AUTO, 'game', { preload: preload, create: create, update: update, render: render});
+var gamestarted = false;
+var game;
+
+function start(){
+    console.log('Entro aqui');
+    
+
+
+
+
+ game = new Phaser.Game(800, 900, Phaser.AUTO, 'game', { preload: preload, create: create, update: update, render: render});
 
 function preload() {
     game.load.image('bullet', 'assets/bullet.png');
@@ -1298,3 +1308,10 @@ function updatePlayer2Bis() {
     output += ";";
 }
 
+}
+
+function salir(){
+    //game.world._hash.length = 0
+    game.destroy();
+    //game.world.removeAll();
+}
