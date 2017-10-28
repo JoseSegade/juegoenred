@@ -1,13 +1,8 @@
-var gamestarted = false;
 var game;
 
 function start(){
     console.log('Entro aqui');
     
-
-
-
-
  game = new Phaser.Game(800, 900, Phaser.AUTO, 'game', { preload: preload, create: create, update: update, render: render});
 
 function preload() {
@@ -33,6 +28,10 @@ var player2;
 //Cursores para ambos jugadores
 var cursors;
 var cursors2 = [];
+//variables para controlar el pause y salir del juego
+var pausa;
+var pauseactivated;
+var salirdeljuego;
 //Boton de disparo de los jugadores
 var fireButton;
 var fireButton2;
@@ -263,6 +262,9 @@ function create(){
     cursors2 [0] = game.input.keyboard.addKey(Phaser.Keyboard.A);
     cursors2 [1] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 
+    //Controlamos la salida del juego
+    salirdeljuego = game.input.keyboard.addKey(Phaser.Keyboard.ESC);
+
     fireButton2 = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_0);
 
     // Asignamos un tiempo de espera para empezar la partida
@@ -275,6 +277,16 @@ function create(){
 function update() {
     // Movimiento del escenario de fondo
     starfield.tilePosition.y += 2;
+
+    //Cuando Phaser ejecuta el pause paraliza el update tenemos que recurrir a la ventana
+    //para ver si se ha presionado la tecla o no por eso implementamos esta funcion aqui
+    //Le decimos que si la tecla presionada es la P pausa y si volvemos a presionarla lo reanuda
+    window.onkeydown = function(event) {  
+        if (event.keyCode == 80){ 
+                  game.paused = !game.paused; 
+                  }
+        } 
+    
 
     var currentTime = game.time.now;
 
@@ -1311,7 +1323,6 @@ function updatePlayer2Bis() {
 }
 
 function salir(){
-    //game.world._hash.length = 0
     game.destroy();
-    //game.world.removeAll();
 }
+
