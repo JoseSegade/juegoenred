@@ -1,9 +1,6 @@
 var game;
-
-function start(){
-    console.log('Entro aqui');
     
- game = new Phaser.Game(800, 900, Phaser.AUTO, 'game', { preload: preload, create: create, update: update, render: render});
+game = new Phaser.Game(800, 900, Phaser.AUTO, 'game', { preload: preload, create: create, update: update, render: render});
 
 function preload() {
     game.load.image('bullet', 'assets/bullet.png');
@@ -1318,11 +1315,5 @@ function updatePlayer2Bis() {
         output += ",['SHOOT']";
     }
     output += ";";
-}
-
-}
-
-function salir(){
-    game.destroy();
 }
 
