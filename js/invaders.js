@@ -18,6 +18,7 @@ function preload() {
     game.load.spritesheet('poweravatar', 'assets/StanleyTheBugmanDefinitivo32x32.png', 32,32);
     game.load.image('disparoavatar', 'assets/Disparoavatar.png');
 }
+
 //array de puntuaciones
 var puntuaciones = [];
 var longitudarray = 0;
@@ -97,7 +98,7 @@ var countdownText;
 var countdownText2;
 
 function create(){
-    
+    sessionStorage.setItem('definitivo', 'true');
     // Creación de la física del juego tipo arcade
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -1178,16 +1179,32 @@ function enemyHitsPlayer(player, bullet) {
                 called2 = false;
             }
 
-            var nombre2 = prompt('Has ganado, introduce tu nombre');
-            var puntuacion2 = {
-                'nombre' : nombre2,
-                'puntuacion' : scoreText_player2
+            var score = ''+score_player2;
+
+            if(score > 0){
+                //Pedimos el dato por pantalla y el valor de la puntuación lo pasamos a string
+                var nombre = prompt('Has ganado player 2, introduce tu nombre');
+                //Almacenamos los datos de la puntuación
+                var dato = {nombre, score};
+                console.log(dato.nombre + ' ' + dato.score);
+                //medimos la longitud del array para saber en que posición meter los datos
+                var leng = puntuaciones.length;
+                console.log('length: '+leng);
+                puntuaciones[leng] = dato;
+                //Guardamos un boolean para saber si se ha cambiado o no el dato y no repetir
+                sessionStorage.setItem('cambiado', 'false');
+                //la posicion del dato
+                sessionStorage.setItem('posicion', leng);
+                //definimos la posicion y el identificador + el dato
+                sessionStorage.setItem('n'+leng, dato.nombre);
+                sessionStorage.setItem('p'+leng, dato.score);
             }
-            //medimos la longitud del array para saber en que posición meter los datos
-            var leng = puntuaciones.length;
-            puntuaciones[leng] = puntuacion2;
-            //Almacenamos la puntuación para comparar en la funcion checkpuntuacion en puntuacion.js
-            sessionStorage.setItem('temporal', puntuaciones);
+            
+            
+            if(score < 0){
+                score = '0';
+            }
+
             // La funcion para reiniciar
             game.input.onTap.addOnce(restart, this);
         }
@@ -1231,17 +1248,29 @@ function enemyHitsPlayer(player, bullet) {
             if(avatarcalled){
                 called1 = false;
             }
-            var nombre = prompt('Has ganado, introduce tu nombre');
-            var puntuacion = {
-                'nombre' : nombre,
-                'puntuacion' : scoreText_player1
+
+            var score = ''+score_player1;
+            //Pedimos el dato por pantalla y el valor de la puntuación lo pasamos a string
+            if(score > 0){
+                var nombre = prompt('Has ganado player 1, introduce tu nombre'); 
+                //Almacenamos los datos de la puntuación
+                var dato = {nombre, score};
+                console.log(dato.nombre + ' ' + dato.score);
+                //medimos la longitud del array para saber en que posición meter los datos
+                var leng = puntuaciones.length;
+                console.log('length: '+leng);
+                puntuaciones[leng] = dato;
+                //Guardamos un boolean para saber si se ha cambiado o no el dato y no repetir
+                sessionStorage.setItem('cambiado', 'false');
+                //la posicion del dato
+                sessionStorage.setItem('posicion', leng);
+                //definimos la posicion y el identificador + el dato
+                sessionStorage.setItem('n'+leng, dato.nombre);
+                sessionStorage.setItem('p'+leng, dato.score);               
             }
-            //medimos la longitud del array para saber en que posición meter los datos
-            var leng = puntuaciones.length;
-            puntuaciones[leng] = puntuacion;
-            //Almacenamos la puntuación para comparar en la funcion checkpuntuacion en puntuacion.js
-            sessionStorage.setItem('temporal', puntuaciones);
-            console.log(puntuacion['nombre']+leng);
+            
+            
+            
             // La funcion para reiniciar
             game.input.onTap.addOnce(restart, this);
         }
@@ -1405,5 +1434,10 @@ function updatePlayer2Bis() {
 
 function pause(){
     game.pause = true;
+}
+
+function puntuacioninfo(nombre, score){
+    this.nombre = ''+nombre;
+    this.score = ''+score;
 }
 
