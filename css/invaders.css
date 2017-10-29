@@ -47,7 +47,7 @@ body {
 
 .buttonMenu {
 	text-decoration: none;
-    display: inline-block;
+    	display: inline-block;
 	width: 180px;
 	height: 60px;
 	border: 2px solid #84a;
@@ -74,4 +74,31 @@ body {
 	box-shadow: 0 6px 0 #06c;
 	border-radius: 5px;
 }
+
+#table {
+	border: 3px solid #066458;
+	font-family: arial, sans-serif;
+	font-size: 25px;
+	position: relative;
+	bottom: 6px;
+    	border-collapse: collapse;
+    	width: 80%;
+	height: 80%;
+	background-color: #09f;
+	margin: auto;
+}
+ .td {
+            border: 3px solid #066458;
+            text-align: rigth;
+            padding: 8px;
+        }
+.th {
+	border: 3px solid #066458;
+            text-align: rigth;
+            padding: 8px;
+        }
+        
+ .tr {
+    background-color: #dddddd;
+ }
 

@@ -1,6 +1,6 @@
 var game;
     
-game = new Phaser.Game(800, 900, Phaser.AUTO, 'game', { preload: preload, create: create, update: update, render: render});
+game = new Phaser.Game(800, 900, Phaser.AUTO, 'game', {preload: preload, create: create, update: update, render: render});
 
 function preload() {
     game.load.image('bullet', 'assets/bullet.png');
@@ -18,7 +18,9 @@ function preload() {
     game.load.spritesheet('poweravatar', 'assets/StanleyTheBugmanDefinitivo32x32.png', 32,32);
     game.load.image('disparoavatar', 'assets/Disparoavatar.png');
 }
-
+//array de puntuaciones
+var puntuaciones = [];
+var longitudarray = 0;
 //Definimos los jugadores del juego (2)
 var player;
 var player2;
@@ -86,7 +88,16 @@ var enemyBullets2;
 var deathplayer = false;
 var deathplayer2 = false;
 
+//variables de la cuenta atrás
+var timer;
+var countdown = true;
+var textocd = '';
+var timeleftcd = 0;
+var countdownText;
+var countdownText2;
+
 function create(){
+    
     // Creación de la física del juego tipo arcade
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -259,19 +270,37 @@ function create(){
     cursors2 [0] = game.input.keyboard.addKey(Phaser.Keyboard.A);
     cursors2 [1] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 
-    //Controlamos la salida del juego
-    salirdeljuego = game.input.keyboard.addKey(Phaser.Keyboard.ESC);
-
     fireButton2 = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_0);
 
+    //Controlamos la pausa
+    pausa = game.input.keyboard.addKey(Phaser.Keyboard.P);
+
     // Asignamos un tiempo de espera para empezar la partida
-    firingTimer = game.time.now + 1000;
+    firingTimer = game.time.now + 6000;
 
     //Tiempo de espera de la avioneta
-    planeTimer = game.time.now + 2000;
+    planeTimer = game.time.now + 7000;
+
+    // Create a custom timer
+    timer = game.time.create();
+    textocd = 'La partida empieza en: ';
+    // Create a delayed event 1m and 30s from now
+    timeleftcd = timer.add(Phaser.Timer.SECOND * 5, deleteTime, this);
+    countdownText2 = game.add.text( game.world.width/2-200, game.world.height/2-100, textocd, {font: '40px Arial', fill: '#fff'});
+    countdownText = game.add.text( game.world.width/2-20, game.world.height/2, timeleftcd, {font: '34px Arial', fill: '#fff'});
+    
+    // Start the timer
+    timer.start();
+
+}
+
+function deleteTime(){
+    game.time.events.removeAll(timer);
+    countdown = false;
 }
 
 function update() {
+    if(!countdown){
     // Movimiento del escenario de fondo
     starfield.tilePosition.y += 2;
 
@@ -283,6 +312,10 @@ function update() {
                   game.paused = !game.paused; 
                   }
         } 
+    
+        if(pause.isDown){
+            pause();
+        }
     
 
     var currentTime = game.time.now;
@@ -306,6 +339,7 @@ function update() {
     if(player.alive && player2.alive) {
         // Reseteamos la posicion del jugador1, despues comprobamos las teclas de movimiento
         player.body.velocity.setTo(0, 0);
+        player2.body.velocity.setTo(0, 0);
         
         updatePlayer1();
         updatePlayer2Bis();
@@ -367,9 +401,33 @@ function update() {
         avatarcalled = false;
     }
 }
+}
 
 function render() {
+    if (timer.running) {
+        countdownText.text = formatTime(Math.round((timeleftcd.delay - timer.ms) / 1000));
+        //game.debug.text(formatTime(Math.round((timeleftcd.delay - timer.ms) / 1000)), 2, 14, "#ff0");
+    }
+    else {
+        countdown = false;
+        countdownText.text = '';
+        countdownText2.text = '';
+    }
+}
 
+function deleteTime() {
+    // Stop the timer when the delayed event triggers
+    timer.stop();
+}
+
+function formatTime(s) {
+    // Convert seconds (s) to a nicely formatted and padded time string
+    //var minutes = "0" + Math.floor(s / 60);
+    //var seconds = "0" + (s-minutes* 60);
+    var seconds = "0" + (s);
+    //
+    //return minutes.substr(-2) + ":" + seconds.substr(-2);   
+    return seconds.substr(-2); 
 }
 
 /// This function creates the diferent types of aliens, their groups and their configurations
@@ -1101,7 +1159,7 @@ function enemyHitsPlayer(player, bullet) {
 
         }
 
-        // Si el jugador se muere
+        // Si el jugador1 se muere
         if(lives.countLiving() < 1) {
             player.kill();
             enemyBullets.callAll('kill');
@@ -1119,6 +1177,17 @@ function enemyHitsPlayer(player, bullet) {
             if(avatarcalled){
                 called2 = false;
             }
+
+            var nombre2 = prompt('Has ganado, introduce tu nombre');
+            var puntuacion2 = {
+                'nombre' : nombre2,
+                'puntuacion' : scoreText_player2
+            }
+            //medimos la longitud del array para saber en que posición meter los datos
+            var leng = puntuaciones.length;
+            puntuaciones[leng] = puntuacion2;
+            //Almacenamos la puntuación para comparar en la funcion checkpuntuacion en puntuacion.js
+            sessionStorage.setItem('temporal', puntuaciones);
             // La funcion para reiniciar
             game.input.onTap.addOnce(restart, this);
         }
@@ -1145,7 +1214,7 @@ function enemyHitsPlayer(player, bullet) {
 
         }
 
-        // Si el jugador se muere
+        // Si el jugador2 se muere
         if(lives2.countLiving() < 1) {
             player2.kill();
             enemyBullets.callAll('kill');
@@ -1162,7 +1231,17 @@ function enemyHitsPlayer(player, bullet) {
             if(avatarcalled){
                 called1 = false;
             }
-
+            var nombre = prompt('Has ganado, introduce tu nombre');
+            var puntuacion = {
+                'nombre' : nombre,
+                'puntuacion' : scoreText_player1
+            }
+            //medimos la longitud del array para saber en que posición meter los datos
+            var leng = puntuaciones.length;
+            puntuaciones[leng] = puntuacion;
+            //Almacenamos la puntuación para comparar en la funcion checkpuntuacion en puntuacion.js
+            sessionStorage.setItem('temporal', puntuaciones);
+            console.log(puntuacion['nombre']+leng);
             // La funcion para reiniciar
             game.input.onTap.addOnce(restart, this);
         }
@@ -1224,6 +1303,10 @@ function restart() {
     player2.x = game.world.width/2;
     // Ocultamos el texto
     stateText.visible = false;
+
+    countdown = true;
+
+    game.state.restart();
 }
 
 /// This function removes the bullet. This is called if the bullet goes off the screen
@@ -1246,6 +1329,9 @@ function updatePlayer1() {
             player.body.velocity.x = 200;            
         }
         output = "['MOVE_RIGHT']";
+    }
+    else if(cursors.right.isUp && cursors.left.isUp){
+        player.body.velocity.x = 0;
     }
 
     // Disparos
@@ -1315,5 +1401,9 @@ function updatePlayer2Bis() {
         output += ",['SHOOT']";
     }
     output += ";";
+}
+
+function pause(){
+    game.pause = true;
 }
 
