@@ -15,9 +15,9 @@ body {
 }
 
 #game_title {
-    font-family: "Lucida Console", Monaco, monospace;
-    color: rgb(0, 255, 0);
-    font-size: 5em;
+	background: url("assets/tittle_SPACE_INVADERS.png");
+	width: auto;
+	height: auto;
 }
 
 #game {
