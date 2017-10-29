@@ -1404,6 +1404,7 @@ function updatePlayer2() {
     functions_player2[key[random]]();
     
 }
+
 //Función para la práctica 2 de partida uno contra uno en el mismo ordenador
 function updatePlayer2Bis() {
     var output = "['SKIP']";
