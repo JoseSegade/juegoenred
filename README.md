@@ -28,11 +28,18 @@ Trello: https://trello.com/b/LvgXmdKU/juego-en-red
 
 Páginas de navegación:
 Menú. Desde el menú de podrá seleccionar una nueva partida o acceder al panel de puntuaciones.
+![picture](documentation/mainScreen.png)
+
 Juego. En la página de juego se desarrolla el contenido del juego donde se enfrentan los jugadores a través del entorno javascript.
+![picture](documentation/game.png)
+
 Leaderboard. El panel de puntuaciones contendrá una tabla con los mejores jugadores.
+![picture](documentation/score.png)
 
 Diagrama de navegación:
 Desde el menú se puede ir al juego o a la tabla de puntuaciones, y desde cualquiera de estas páginas se puede volver siempre al menú de nuevo.
+![picture](documentation/navigation.png)
+
 
 Diseño del juego:
 Para el diseño del juego se ha escogido como base el juego que provee la página de phaser: http://www.phaser.io/examples/v2/games/invaders. 

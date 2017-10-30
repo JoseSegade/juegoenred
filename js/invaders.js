@@ -265,13 +265,13 @@ function create(){
     cursors = game.input.keyboard.createCursorKeys();
 
     // Asignamos al Jugador1 el botón de disparo 0 y al jugador2 el botón de disparo SPACEBAR
-    fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    fireButton = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_0);
 
     //Cursores del jugador2 para la practica 2
     cursors2 [0] = game.input.keyboard.addKey(Phaser.Keyboard.A);
     cursors2 [1] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 
-    fireButton2 = game.input.keyboard.addKey(Phaser.Keyboard.NUMPAD_0);
+    fireButton2 = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     //Controlamos la pausa
     pausa = game.input.keyboard.addKey(Phaser.Keyboard.P);
@@ -1163,6 +1163,7 @@ function enemyHitsPlayer(player, bullet) {
         // Si el jugador1 se muere
         if(lives.countLiving() < 1) {
             player.kill();
+            player2.body.velocity.x = 0;
             enemyBullets.callAll('kill');
             enemyBullets2.callAll('kill');
             avatar.callAll('kill');
@@ -1194,16 +1195,29 @@ function enemyHitsPlayer(player, bullet) {
                 //Guardamos un boolean para saber si se ha cambiado o no el dato y no repetir
                 sessionStorage.setItem('cambiado', 'false');
                 //la posicion del dato
-                sessionStorage.setItem('posicion', leng);
+                var pos;
+                var primernull = false;
+                for(var i=0; i < 100 ; i++){
+                    if(sessionStorage.getItem('p'+i)==null && !primernull ){
+                        pos = i;
+                        primernull = true;
+                        console.log('pos' + pos);                    }
+                }
+                leng = ''+leng;
+                sessionStorage.setItem('length', leng);
+                    pos = ''+pos;
+                    sessionStorage.setItem('posicion', pos);
+                    sessionStorage.setItem('n'+pos, dato.nombre);
+                    sessionStorage.setItem('p'+pos, dato.score); 
+                
+ 
+                //sessionStorage.setItem('posicion', '20');
                 //definimos la posicion y el identificador + el dato
-                sessionStorage.setItem('n'+leng, dato.nombre);
-                sessionStorage.setItem('p'+leng, dato.score);
+                
+
             }
             
-            
-            if(score < 0){
-                score = '0';
-            }
+ 
 
             // La funcion para reiniciar
             game.input.onTap.addOnce(restart, this);
@@ -1234,6 +1248,7 @@ function enemyHitsPlayer(player, bullet) {
         // Si el jugador2 se muere
         if(lives2.countLiving() < 1) {
             player2.kill();
+            player.body.velocity.x = 0;
             enemyBullets.callAll('kill');
             enemyBullets2.callAll('kill');
             avatar.callAll('kill');
@@ -1249,10 +1264,11 @@ function enemyHitsPlayer(player, bullet) {
                 called1 = false;
             }
 
-            var score = ''+score_player1;
-            //Pedimos el dato por pantalla y el valor de la puntuación lo pasamos a string
+            var score = ''+score_player2;
+            
             if(score > 0){
-                var nombre = prompt('Has ganado player 1, introduce tu nombre'); 
+                //Pedimos el dato por pantalla y el valor de la puntuación lo pasamos a string
+                var nombre = prompt('Has ganado player 2, introduce tu nombre');
                 //Almacenamos los datos de la puntuación
                 var dato = {nombre, score};
                 console.log(dato.nombre + ' ' + dato.score);
@@ -1263,10 +1279,26 @@ function enemyHitsPlayer(player, bullet) {
                 //Guardamos un boolean para saber si se ha cambiado o no el dato y no repetir
                 sessionStorage.setItem('cambiado', 'false');
                 //la posicion del dato
-                sessionStorage.setItem('posicion', leng);
+                var pos;
+                var primernull = false;
+                for(var i=0; i < 100 ; i++){
+                    if(sessionStorage.getItem('p'+i)==null && !primernull ){
+                        pos = i;
+                        primernull = true;
+                        console.log('pos' + pos);                    }
+                }
+                leng = ''+leng;
+                sessionStorage.setItem('length', leng);
+                    pos = ''+pos;
+                    sessionStorage.setItem('posicion', pos);
+                    sessionStorage.setItem('n'+pos, dato.nombre);
+                    sessionStorage.setItem('p'+pos, dato.score); 
+                
+    
+                //sessionStorage.setItem('posicion', '20');
                 //definimos la posicion y el identificador + el dato
-                sessionStorage.setItem('n'+leng, dato.nombre);
-                sessionStorage.setItem('p'+leng, dato.score);               
+                
+
             }
             
             

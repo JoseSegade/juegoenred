@@ -41,7 +41,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
         checkPunctuation();
     }
 */
-    checkPunctuation();
+    if(sessionStorage.getItem('cambiado') == 'false'){
+        checkPunctuation();
+    }
+        
     //Le decimos que ya hemos inicializado el tablero de puntuaciones
     //localStorage.setItem("inicializado", true);
     //sessionStorage.setItem("inicializado", true);    
@@ -50,25 +53,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
 });
 
 
-function setNewPunctuation(puntuacion, posicion) {
-
-    var stringname = "n"+posicion;
-    var stringpospu = "pu"+posicion;
-    var stringpunt = ""+puntuacion[1];
-    //console.log(stringpunt + stringpos);
-    localStorage.setItem(stringpospu, stringpunt);
-    localStorage.setItem(stringname, puntuacion[0]);
-    document.getElementById("punt"+posicion).innerHTML = sessionStorage.getItem(stringpospu);
-    document.getElementById("pos"+posicion).innerHTML = sessionStorage.getItem(stringname);
-}
-
 function checkPunctuation() {
-    if(sessionStorage.getItem('definitivo')=='true'){
+    var length = sessionStorage.getItem('length');
+    length = parseInt(length);
+    if(sessionStorage.getItem('definitivo')=='true' && length>=0){
+        //resettable();
 
         var leng = sessionStorage.getItem('posicion');
+        leng = parseInt(leng);
         console.log('length aki: '+ leng);
 
-        for(var o = 0; o <= leng; o++){
+        var posicion =0;
+        if(leng!=0){
+            posicion = leng -length;
+        }
+
+        for(var o = posicion; o <= leng; o++){
 
         sessionStorage.setItem('cambiado', 'false');
         var name = sessionStorage.getItem('n'+o);
@@ -95,44 +95,48 @@ function checkPunctuation() {
                 else {
                     punt = parseInt(punt);
                 }
-                if(puntosInt > punt && cambiado=='false'){
-                    var puntosCasilla = sessionStorage.getItem('pu'+j);
 
-                    if(puntosCasilla != null){
-                        var IntNum = parseInt(puntosCasilla);
-                        if(IntNum > 0){
-                            for(var i = 4 ; i >= j+1 ; i--){
-                                var nombreAux = sessionStorage.getItem('na'+i-1);
-                                var puntosAux = sessionStorage.getItem('pu'+i-1);
-                                if(nombreAux == null){
-                                    sessionStorage.setItem('na'+i, 'Default');
-                                }
-                                else{
-                                    sessionStorage.setItem('na'+i, nombreAux);
-                                }
-                                if(puntosAux == null){
-                                    sessionStorage.setItem('pu'+i, '0');
-                                }
-                                else{
-                                    sessionStorage.setItem('pu'+i, puntosAux);                                    
-                                }
-                            }
-                        }
+                if(puntosInt >= punt && cambiado=='false'){
+
+                    var nombreAux2 = sessionStorage.getItem('na'+j);
+                    var puntosAux2 = ''+punt;
+                    if(nombreAux2 == null){
+                        nombreAux2 = 'Default';
                     }
+                    //var puntosAux2 = ''+punt;
+
+                        //var IntNum = parseInt(punt);
+                       //if(IntNum > 0){
+                            for(var i = j+1 ; i <= j ; i++){
+                                var nombreAux = sessionStorage.getItem('na'+(i));
+                                var puntosAux = sessionStorage.getItem('pu'+(i));
+                                                              
+                                sessionStorage.setItem('na'+(i), nombreAux2);
+                                sessionStorage.setItem('pu'+(i), puntosAux2);
+
+                                nombreAux2 = nombreAux;
+                                puntosAux2 = puntosAux;
+                                
+                            }
+                        //}
+                        
                     sessionStorage.setItem('na'+j, name);
                     sessionStorage.setItem('pu'+j, puntos);
-                   // sessionStorage.removeItem(name);
-                   // sessionStorage.removeItem(puntos);
-                    cambiado = true;
+                    //sessionStorage.removeItem(name);
+                    //sessionStorage.removeItem(puntos);
                     sessionStorage.setItem('cambiado', 'true');
+                    ordenar(j);
                 }
+               // ordenar(j-1);
             }
-            //sessionStorage.removeItem('n'+o);
-            //sessionStorage.removeItem('p'+o);
+            //sessionStorage.removeItem(name);
+            //sessionStorage.removeItem(puntos);
+            
         }
             sessionStorage.setItem('cambiado', 'true');
         //}
-            ordenar();
+            //ordenar();
+            showall;
     }
     else{
         console.log(sessionStorage.getItem('definitivo'));
@@ -141,8 +145,25 @@ function checkPunctuation() {
     
 }
 
-function ordenar(){
-    for(var i= 0; i < 5 ; i++){
+function resettable() {
+    
+        // Store default name when starts the game
+        sessionStorage.setItem("na0", "Default");
+        sessionStorage.setItem("na1", "Default");
+        sessionStorage.setItem("na2", "Default");
+        sessionStorage.setItem("na3", "Default");
+        sessionStorage.setItem("na4", "Default");
+    
+        //store default punctuation 
+        sessionStorage.setItem("pu0", '0');
+        sessionStorage.setItem("pu1", '0');
+        sessionStorage.setItem("pu2", '0');
+        sessionStorage.setItem("pu3", '0');
+        sessionStorage.setItem("pu4", '0');
+    }
+
+function ordenar(pos){
+    for(var i= pos; i < 5 ; i++){
         
         var dato = sessionStorage.getItem('pu'+i);
         var name = sessionStorage.getItem('na'+i);
