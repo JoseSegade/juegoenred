@@ -10,8 +10,7 @@ function loadItems(callback) {
 }
 
 //Show item in page
-function showItem(item, i) {
-	
+function showItem(item, i) {	
 		$('#table').append(
 		        '<tr class = tr>'
 		        +'<td id= td' + i + '>'+item.id +'</td>'

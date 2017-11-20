@@ -1428,8 +1428,10 @@ function pause(){
     game.pause = true;
 }
 
+/*
 function puntuacioninfo(nombre, score){
     this.nombre = ''+nombre;
     this.score = ''+score;
 }
+*/
 
