@@ -100,6 +100,8 @@ var countdownText2;
 //Variables que almacena la referencia a la función JQUERY
 var javascriptfunction;
 
+var input = "";
+
 function create(){
 	
 	javascriptfunction = null;
@@ -330,6 +332,7 @@ function update() {
     if(called1){
         moveAvatar('RIGHT');
         if(currentTime > avatarTimer) {
+        	
             avatarFires(avatarbullet, 'UP');
         }
     }
@@ -348,7 +351,7 @@ function update() {
         player2.body.velocity.setTo(0, 0);
         
         updatePlayer1();
-        updatePlayer2Bis();
+        updatePlayer2();
 
         var currentTime = game.time.now;
         if(currentTime > firingTimer && currentTime > waitTimer) {
@@ -1336,19 +1339,22 @@ function resetBullet() {
 }
 
 function updatePlayer1() {
-    var output = "['SKIP']";
+    
+    var left = false;
+    var right = false;
+    var shoot = false;
     //  Detectamos las teclas del jugador1
     if(cursors.left.isDown) {
         if(player.body.x > 200) {
             player.body.velocity.x = -200;            
         }
-        output = "['MOVE_LEFT']";
+        left = true;
     }
     else if(cursors.right.isDown) {
         if(player.body.x < game.world.width - 200) {
             player.body.velocity.x = 200;            
         }
-        output = "['MOVE_RIGHT']";
+        right = true;
     }
     else if(cursors.right.isUp && cursors.left.isUp){
         player.body.velocity.x = 0;
@@ -1357,9 +1363,18 @@ function updatePlayer1() {
     // Disparos
     if(fireButton.isDown) {
         player = fireBullet(player, 'UP');
-        output += ",['SHOOT']";
+        shoot = true;
     }
-    output += ";";
+    var movement = {
+    		izq:left,
+    		der:right,
+    		dis:shoot
+    }
+    var output = { 
+    		type:"move", 
+    		params:movement
+    }
+    enviarDocumento(output);
 }
 
 /// This function will get the key from the connected computer to know what the player2 will do
@@ -1367,32 +1382,25 @@ function updatePlayer1() {
 function updatePlayer2() {
     // Reseteamos la posicion del jugador2, despues comprobamos las teclas de movimiento
     player2.body.velocity.setTo(0, 0);
-
-    var functions_player2 = {
-        'SHOOT': function() {
-            player2 = fireBullet(player2, 'DOWN');
-        },
-        'MOVE_LEFT': function() {
+    
+    if(input != "") {
+        var player2inputs = JSON.parse(input);
+        
+        if(player2inputs.der) {
+            if(player2.body.x < game.world.width - 200) {
+                player2.body.velocity.x = 200;            
+           }
+        }
+        if(player2inputs.izq) {
             if(player2.body.x > 200) {
                 player2.body.velocity.x = -200;            
             }
-        },
-        'MOVE_RIGHT': function() {
-            if(player2.body.x < game.world.width - 200) {
-                player2.body.velocity.x = 200;            
-            }
-        },
-        'SKIP': function() {
-            return 0;
+        }
+        if(player2inputs.dis) {
+        	player2 = fireBullet(player2, 'DOWN');
         }
     }
-
-    //  We will simulate a key
-    var key = ['MOVE_LEFT', 'MOVE_RIGHT', 'SKIP', 'SHOOT'];
-    var random = game.rnd.integerInRange(0, 2);
-    functions_player2[key[random]]();
-    random = game.rnd.integerInRange(2, 3);
-    functions_player2[key[random]]();
+    
     
 }
 
