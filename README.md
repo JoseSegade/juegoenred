@@ -50,8 +50,17 @@ por tanto el juego no debe ser lento en ningún momento y ha de estar orientado 
 cierto nivel de reto para cada uno de los jugadores. 
 Hemos optado por una estética que recuerde a las máquinas arcade. 
 
+----FASE 3----
 
+El diagrama de navegación continúa igual que en la fase 2
 
+Diagrama de clases:
+![picture](documentation/Diagrama_clases.png)
+
+Instrucciones precisas para ejecutar la aplicación:
+Compilar la aplicación en sts-bundle y ejecutar de manera normal en el buscador con localhost:8080
+lo que nos llevará a la página de inicio del juego y podremos navegar entre las diferentes pestañas
+con los botones habilitados para ello.
 
 
 
