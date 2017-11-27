@@ -2,7 +2,7 @@
 function loadItems(callback) {
     $.ajax({
     	method: 'GET',
-        url: 'http://localhost:8080/Scores'
+        url: window.location.origin +'/Scores'
     }).done(function (items) {
         console.log('Items loaded: ' + JSON.stringify(items));
         callback(items);

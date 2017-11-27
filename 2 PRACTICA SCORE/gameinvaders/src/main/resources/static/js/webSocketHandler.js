@@ -1,4 +1,4 @@
-var connection = new WebSocket('ws://localhost:8080/move');
+var connection = new WebSocket("ws://" + window.location.host +'/move');
 
 connection.onerror= function(e) {
 	console.log("WS error: " + e);
