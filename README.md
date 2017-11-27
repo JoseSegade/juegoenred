@@ -58,9 +58,12 @@ Diagrama de clases:
 ![picture](documentation/Diagrama_clases.png)
 
 Instrucciones precisas para ejecutar la aplicación:
-Compilar la aplicación en sts-bundle y ejecutar de manera normal en el buscador con localhost:8080
+1) Compilar la aplicación en sts-bundle y ejecutar de manera normal en el buscador con localhost:8080
 lo que nos llevará a la página de inicio del juego y podremos navegar entre las diferentes pestañas
 con los botones habilitados para ello.
+
+2) La otra opción es ejecutar el archivo .jar localizado en la carpeta gameinvaders/target/gameinvaders-0.0.1-SNAPSHOT.jar
+   y a continuación en el navegador escribir: localhost:8080 y nos llevará al inicio del juego
 
 
 

@@ -12,7 +12,7 @@ function preload() {
     game.load.spritesheet('explosion', 'assets/explode.png', 128, 128);
     game.load.image('starfield', 'assets/starfield.png');
     game.load.image('background', 'assets/background2.png');
-    game.load.spritesheet('plane', 'assets/volador432x32.png', 32, 32);
+    game.load.spritesheet('plane', 'assets/Volador432x32.png', 32, 32);
     game.load.spritesheet('deathplane', 'assets/DeadPlane.png', 32, 32);
     game.load.spritesheet('power','assets/powerup.png',32,32);
     game.load.spritesheet('poweravatar', 'assets/StanleyTheBugmanDefinitivo32x32.png', 32,32);
@@ -1253,16 +1253,20 @@ function enemyHitsPlayer(player, bullet) {
             
             if(score_player1 > 0){
                 //Pedimos el dato por pantalla y el valor de la puntuación lo pasamos a string
-                var nombreusuario = prompt('Has ganado player 1, introduce tu nombre');
+                var nombreusuario = prompt('Has ganado player 2, introduce tu nombre');
                 //Almacenamos los datos de la puntuación
                 var pos = -1;
-                var dato = {
-               	 id : pos,
-               	 nombre : nombreusuario,
-               	 score : score_player1
-               }
-                console.log(dato.nombre + ' ' + dato.score);
-                $.create(dato);
+                var Score = {
+                	 id : pos,
+                	 name : nombreusuario,
+                	 score : score_player1
+                }
+                //var dato = {pos ,nombre, score_player2};
+                console.log(Score.name + ' ' + Score.score);
+                //createItem(dato);
+                $.create(Score);
+                var date = JSON.stringify(Score);
+                console.log(date);
             }
           
             // La funcion para reiniciar
