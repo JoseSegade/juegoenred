@@ -2,7 +2,8 @@
 function createItem(item, callback) {
     $.ajax({
         method: "POST",
-        url: window.location.origin + '/Scores',
+        //url: 'http://localhost:8080/Scores',
+        url: window.location.origin +'/Scores',
         data: JSON.stringify(item),
         processData: false,
         headers: {
