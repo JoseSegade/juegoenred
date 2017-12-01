@@ -100,7 +100,8 @@ var countdownText2;
 //Variables que almacena la referencia a la función JQUERY
 var javascriptfunction;
 
-var input = "";
+var player2inputs = "";
+var alienInputs = "";
 
 function create(){
 	
@@ -743,13 +744,21 @@ function enemyFires(bullets, enemies, direction) {
 
         // Seleccionamos un alien aleatoriamente
         var shooter = livingaliens[random];
-        // Disparamos una bala
-        enemyBullet.reset(shooter.body.x, shooter.body.y);
+        
         if(dir[direction] == -1){
-            game.physics.arcade.moveToObject(enemyBullet,player,300);
+        	enemyBullet.reset(shooter.body.x, shooter.body.y);
+        	enviarDocumento({type:"alien", params:{coordX:shooter.body.x, coordY:shooter.body.y}})        	
+            game.physics.arcade.moveToObject(enemyBullet,player,300);            
         }
         else{
-            game.physics.arcade.moveToObject(enemyBullet,player2,300);
+        	if(alienInputs != ""){
+        		var coordX = game.world.width - alienInputs.coordX;
+            	var coordY = game.world.height - alienInputs.coordY;
+            	console.log("Coord X: " + coordX + ", Coord Y: " + coordY);
+            	enemyBullet.reset(game.world.width - alienInputs.coordX, game.world.height - alienInputs.coordY);
+                game.physics.arcade.moveToObject(enemyBullet,player2,300);
+                alienInputs = "";
+        	}        	
         }
         
         firingTimer = game.time.now + 500;
@@ -1343,22 +1352,23 @@ function resetBullet() {
 }
 
 function updatePlayer1() {
-    
+	player.body.velocity.setTo(0, 0);
+	
     var left = false;
     var right = false;
     var shoot = false;
     //  Detectamos las teclas del jugador1
     if(cursors.left.isDown) {
         if(player.body.x > 200) {
-            player.body.velocity.x = -200;            
+            player.body.velocity.x = -200;
+            left = true;
         }
-        left = true;
     }
     else if(cursors.right.isDown) {
         if(player.body.x < game.world.width - 200) {
-            player.body.velocity.x = 200;            
+            player.body.velocity.x = 200;    
+            right = true;
         }
-        right = true;
     }
     else if(cursors.right.isUp && cursors.left.isUp){
         player.body.velocity.x = 0;
@@ -1370,8 +1380,8 @@ function updatePlayer1() {
         shoot = true;
     }
     var movement = {
-    		izq:left,
-    		der:right,
+    		izq: left,
+    		der: right,
     		dis:shoot
     }
     var output = { 
@@ -1387,19 +1397,19 @@ function updatePlayer2() {
     // Reseteamos la posicion del jugador2, despues comprobamos las teclas de movimiento
     player2.body.velocity.setTo(0, 0);
     
-    if(input != "") {
-        var player2inputs = JSON.parse(input);
+    if(player2inputs != "") {
         
-        if(player2inputs.der) {
-            if(player2.body.x < game.world.width - 200) {
-                player2.body.velocity.x = 200;            
-           }
-        }
         if(player2inputs.izq) {
-            if(player2.body.x > 200) {
-                player2.body.velocity.x = -200;            
-            }
+        	if(player2.body.x < game.world.width - 200) {
+        		player2.body.velocity.x = 200;
+        	}
         }
+        if(player2inputs.der) {
+        	if(player2.body.x > 200) {
+        		player2.body.velocity.x = -200;
+        	}
+        }
+        
         if(player2inputs.dis) {
         	player2 = fireBullet(player2, 'DOWN');
         }
