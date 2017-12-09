@@ -14,7 +14,7 @@ public class GameinvadersApplication implements WebSocketConfigurer {
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
 		registry.addHandler(movementHandler(), "/move").setAllowedOrigins("*");
-	}
+	}	
 	
 	@Bean
 	public WebSocketMovementRegistry movementHandler() {

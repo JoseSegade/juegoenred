@@ -14,6 +14,9 @@ connection.onmessage = function(msg) {
 	case "alien":
 		alienInputs = JSON.parse(inputData.params);
 		break;
+	case "ready":
+		ready = JSON.parse(inputData.params).ready;
+		break;
 	}
 	
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -18,12 +19,26 @@ public class WebSocketMovementRegistry extends TextWebSocketHandler {
 	private ConcurrentHashMap <String, String> party = new ConcurrentHashMap<String, String>();
 	
 	@Override
-	protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-		System.out.println("Message received: " + message.getPayload());
+	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+		System.out.println("New user: " + session.getId());
 		openSessions.put(session.getId(), session);
 		if(!readyPlayers.containsKey(session.getId())) {
 			readyPlayers.put(session.getId(), false);
 		}
+	}
+	
+	@Override
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+		System.out.println("Session closed: " + session.getId());
+		if(readyPlayers.containsKey(session.getId())) {
+			readyPlayers.remove(session.getId());
+		}
+		openSessions.remove(session.getId());
+	}
+	
+	@Override
+	protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+		System.out.println("Message received: " + message.getPayload());		
 		
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode node = mapper.readTree(message.getPayload());
@@ -40,21 +55,17 @@ public class WebSocketMovementRegistry extends TextWebSocketHandler {
 			break;
 		case "ready":
 			responseMessage = Ready(session.getId());
+			session.sendMessage(new TextMessage(responseMessage));
 			break;
 		}		
 		
 		
 		System.out.println("Message sent: " + responseMessage);
 		List<WebSocketSession> sessions = new ArrayList<WebSocketSession>(openSessions.values());
-		for(WebSocketSession s : sessions) {
-			if(!s.isOpen()) {
-				openSessions.remove(s.getId());
-			}
-			else {
-				if(s.getId() != session.getId()) {
-					s.sendMessage(new TextMessage(responseMessage));
-				}
-			}			
+		for(WebSocketSession s : sessions) {			
+			if(s.getId() != session.getId()) {
+				s.sendMessage(new TextMessage(responseMessage));
+			}	
 		}		
 	}
 	
@@ -91,15 +102,25 @@ public class WebSocketMovementRegistry extends TextWebSocketHandler {
 	}
 	
 	private String Ready(String id) {
-		readyPlayers.replace(id, true);
-		List<Boolean> sessionsReady = new ArrayList<Boolean>(readyPlayers.values());
+		
+		
 		Boolean response = false;
-		for(Boolean r : sessionsReady) {
-			if(r) {
-				response = r;
+		for(String key: readyPlayers.keySet()) {
+			if(readyPlayers.get(key)) {
+				response = true;
+				party.put(id, key);
+				readyPlayers.remove(key);
 			}
 		}
-		return response.toString();
+		readyPlayers.replace(id, true);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode responseNode = mapper.createObjectNode();
+		ObjectNode paramsNode = mapper.createObjectNode();
+		paramsNode.put("ready", response);
+		responseNode.put("type", "ready");
+		responseNode.put("params", paramsNode.toString());
+		return responseNode.toString();
 	}
 	
 	

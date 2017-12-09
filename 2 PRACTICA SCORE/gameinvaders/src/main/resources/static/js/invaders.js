@@ -89,6 +89,7 @@ var enemyBullets2;
 var deathplayer = false;
 var deathplayer2 = false;
 
+/*
 //variables de la cuenta atrás
 var timer;
 var countdown = true;
@@ -96,6 +97,12 @@ var textocd = '';
 var timeleftcd = 0;
 var countdownText;
 var countdownText2;
+*/
+var textforwait = '';
+var readyText = '';
+var ready = false;
+
+
 
 //Variables que almacena la referencia a la función JQUERY
 var javascriptfunction;
@@ -290,6 +297,7 @@ function create(){
     //Tiempo de espera de la avioneta
     planeTimer = game.time.now + 7000;
 
+    /*    
     // Create a custom timer
     timer = game.time.create();
     textocd = 'La partida empieza en: ';
@@ -300,7 +308,11 @@ function create(){
     
     // Start the timer
     timer.start();
-
+    
+    */
+    
+    textforwait = 'Waiting for players... \n Pulsa la pantalla para continuar'
+    readyText = game.add.text( game.world.width/2-200, game.world.height/2-100, textforwait, {font: '40px Arial', fill: '#fff'});
 }
 
 function deleteTime(){
@@ -309,120 +321,133 @@ function deleteTime(){
 }
 
 function update() {
-    if(!countdown){
-    // Movimiento del escenario de fondo
-    starfield.tilePosition.y += 2;
-
-    //Cuando Phaser ejecuta el pause paraliza el update tenemos que recurrir a la ventana
-    //para ver si se ha presionado la tecla o no por eso implementamos esta funcion aqui
-    //Le decimos que si la tecla presionada es la P pausa y si volvemos a presionarla lo reanuda
-    window.onkeydown = function(event) {  
-        if (event.keyCode == 80){ 
-                  game.paused = !game.paused; 
-                  }
-        } 
+    if(ready){
+	    // Movimiento del escenario de fondo
+	    starfield.tilePosition.y += 2;
+	
+	    //Cuando Phaser ejecuta el pause paraliza el update tenemos que recurrir a la ventana
+	    //para ver si se ha presionado la tecla o no por eso implementamos esta funcion aqui
+	    //Le decimos que si la tecla presionada es la P pausa y si volvemos a presionarla lo reanuda
+	    window.onkeydown = function(event) {  
+	        if (event.keyCode == 80){ 
+	                  game.paused = !game.paused; 
+	                  }
+	        } 
+	    
+	        if(pause.isDown){
+	            pause();
+	        }
+	    
+	
+	    var currentTime = game.time.now;
+	
+	    movePlane();
+	    if(called1){
+	        moveAvatar('RIGHT');
+	        if(currentTime > avatarTimer) {
+	        	
+	            avatarFires(avatarbullet, 'UP');
+	        }
+	    }
+	    if(called2){
+	        moveAvatar('LEFT');
+	        if(currentTime > avatarTimer) {
+	            avatarFires(avatarbullet2, 'DOWN');
+	        }
+	    }
     
-        if(pause.isDown){
-            pause();
-        }
     
 
-    var currentTime = game.time.now;
-
-    movePlane();
-    if(called1){
-        moveAvatar('RIGHT');
-        if(currentTime > avatarTimer) {
-        	
-            avatarFires(avatarbullet, 'UP');
-        }
+	    if(player.alive && player2.alive) {
+	        // Reseteamos la posicion del jugador1, despues comprobamos las teclas de movimiento
+	        player.body.velocity.setTo(0, 0);
+	        player2.body.velocity.setTo(0, 0);
+	        
+	        updatePlayer1();
+	        updatePlayer2();
+	
+	        var currentTime = game.time.now;
+	        if(currentTime > firingTimer && currentTime > waitTimer) {
+	            enemyFires(enemyBullets, aliens, 'UP');
+	            enemyFires(enemyBullets2, new_enemies, 'DOWN');
+	        }
+	
+	
+	        // Detectamos las colisiones
+	        game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
+	        // Detectamos las colisiones con los enemigos amarillos
+	        game.physics.arcade.overlap(bullets, new_enemies, collisionHandler, null, this);
+	        // Detectamos las colisiones de los enemigos con el jugador1
+	        game.physics.arcade.overlap(enemyBullets, player, enemyHitsPlayer, null, this);
+	        // Detectamos las colisiones de los enemigos con el jugador2
+	        game.physics.arcade.overlap(enemyBullets2, player2, enemyHitsPlayer, null, this);
+	        // Detectamos las balas del jugador2 con el jugador1
+	        game.physics.arcade.overlap(bullets2, player, enemyHitsPlayer, null, this);
+	
+	        // Detectamos las colisiones
+	        game.physics.arcade.overlap(bullets2, aliens, collisionHandler, null, this);
+	        // Detectamos las colisiones con los enemigos amarillos
+	        game.physics.arcade.overlap(bullets2, new_enemies, collisionHandler, null, this);
+	        // Detectamos las colisiones de los enemigos con el jugador2
+	        game.physics.arcade.overlap(enemyBullets, player2, enemyHitsPlayer, null, this);
+	        // Detectamos las balas del jugador1 con el jugador2
+	        game.physics.arcade.overlap(bullets, player2, enemyHitsPlayer, null, this);
+	
+	        // Detectamos las colisiones entre enemigos y jugador
+	        game.physics.arcade.overlap(aliens, player, enemyReachPlayer, null, this);
+	        // Detectamos las colisiones entre enemigos y jugador2
+	        game.physics.arcade.overlap(new_enemies, player2, enemyReachPlayer, null, this);
+	        // Detectamos las colisiones entre jugadores y avioneta
+	        isplane = true;
+	        game.physics.arcade.overlap(bullets, plane, collisionHandler, null, this);
+	        game.physics.arcade.overlap(bullets2, plane, collisionHandler, null, this);
+	        isplane = false;
+	        // Detectamos quien ha cogido el power up
+	        if(called1 == false){
+	            game.physics.arcade.overlap(power, player, impactHandler, null, this);
+	        }
+	        if(called2 == false){
+	            game.physics.arcade.overlap(power, player2, impactHandler, null, this);            
+	        }
+	        // Detectamos los impactos con el avatar contrario
+	        if(called1 == true){
+	            game.physics.arcade.overlap(bullets2, avatar, avatarHandler, null, this); 
+	        }
+	        if(called2 == true){
+	            game.physics.arcade.overlap(bullets, avatar, avatarHandler, null, this);         
+	        }
+	        // Detectamos colisiones entre las balas de los avatares y los jugadores
+	        avatarcalled = true;
+	        game.physics.arcade.overlap(avatarbullet, player2, enemyHitsPlayer, null, this);
+	        game.physics.arcade.overlap(avatarbullet2, player, enemyHitsPlayer, null, this);
+	        avatarcalled = false;
+	    }
     }
-    if(called2){
-        moveAvatar('LEFT');
-        if(currentTime > avatarTimer) {
-            avatarFires(avatarbullet2, 'DOWN');
-        }
+    else 
+    {
+    	window.onkeydown = function(event) 
+    	{  
+	        if (event.keyCode == 32 ){ 
+	        	readyText.text = 'Waiting for players... '
+	        	enviarDocumento({type:"ready", params:""});
+	        }
+    	}
     }
-    
-    
-
-    if(player.alive && player2.alive) {
-        // Reseteamos la posicion del jugador1, despues comprobamos las teclas de movimiento
-        player.body.velocity.setTo(0, 0);
-        player2.body.velocity.setTo(0, 0);
-        
-        updatePlayer1();
-        updatePlayer2();
-
-        var currentTime = game.time.now;
-        if(currentTime > firingTimer && currentTime > waitTimer) {
-            enemyFires(enemyBullets, aliens, 'UP');
-            enemyFires(enemyBullets2, new_enemies, 'DOWN');
-        }
-
-
-        // Detectamos las colisiones
-        game.physics.arcade.overlap(bullets, aliens, collisionHandler, null, this);
-        // Detectamos las colisiones con los enemigos amarillos
-        game.physics.arcade.overlap(bullets, new_enemies, collisionHandler, null, this);
-        // Detectamos las colisiones de los enemigos con el jugador1
-        game.physics.arcade.overlap(enemyBullets, player, enemyHitsPlayer, null, this);
-        // Detectamos las colisiones de los enemigos con el jugador2
-        game.physics.arcade.overlap(enemyBullets2, player2, enemyHitsPlayer, null, this);
-        // Detectamos las balas del jugador2 con el jugador1
-        game.physics.arcade.overlap(bullets2, player, enemyHitsPlayer, null, this);
-
-        // Detectamos las colisiones
-        game.physics.arcade.overlap(bullets2, aliens, collisionHandler, null, this);
-        // Detectamos las colisiones con los enemigos amarillos
-        game.physics.arcade.overlap(bullets2, new_enemies, collisionHandler, null, this);
-        // Detectamos las colisiones de los enemigos con el jugador2
-        game.physics.arcade.overlap(enemyBullets, player2, enemyHitsPlayer, null, this);
-        // Detectamos las balas del jugador1 con el jugador2
-        game.physics.arcade.overlap(bullets, player2, enemyHitsPlayer, null, this);
-
-        // Detectamos las colisiones entre enemigos y jugador
-        game.physics.arcade.overlap(aliens, player, enemyReachPlayer, null, this);
-        // Detectamos las colisiones entre enemigos y jugador2
-        game.physics.arcade.overlap(new_enemies, player2, enemyReachPlayer, null, this);
-        // Detectamos las colisiones entre jugadores y avioneta
-        isplane = true;
-        game.physics.arcade.overlap(bullets, plane, collisionHandler, null, this);
-        game.physics.arcade.overlap(bullets2, plane, collisionHandler, null, this);
-        isplane = false;
-        // Detectamos quien ha cogido el power up
-        if(called1 == false){
-            game.physics.arcade.overlap(power, player, impactHandler, null, this);
-        }
-        if(called2 == false){
-            game.physics.arcade.overlap(power, player2, impactHandler, null, this);            
-        }
-        // Detectamos los impactos con el avatar contrario
-        if(called1 == true){
-            game.physics.arcade.overlap(bullets2, avatar, avatarHandler, null, this); 
-        }
-        if(called2 == true){
-            game.physics.arcade.overlap(bullets, avatar, avatarHandler, null, this);         
-        }
-        // Detectamos colisiones entre las balas de los avatares y los jugadores
-        avatarcalled = true;
-        game.physics.arcade.overlap(avatarbullet, player2, enemyHitsPlayer, null, this);
-        game.physics.arcade.overlap(avatarbullet2, player, enemyHitsPlayer, null, this);
-        avatarcalled = false;
-    }
-}
 }
 
 function render() {
-    if (timer.running) {
-        countdownText.text = formatTime(Math.round((timeleftcd.delay - timer.ms) / 1000));
+    if (ready) {
+        //countdownText.text = formatTime(Math.round((timeleftcd.delay - timer.ms) / 1000));
         //game.debug.text(formatTime(Math.round((timeleftcd.delay - timer.ms) / 1000)), 2, 14, "#ff0");
+    	readyText.text = '';
     }
+    /*
     else {
         countdown = false;
         countdownText.text = '';
         countdownText2.text = '';
     }
+    */
 }
 
 function deleteTime() {
