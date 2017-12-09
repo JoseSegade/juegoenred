@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class WebSocketMovementRegistry extends TextWebSocketHandler {
 	private ConcurrentHashMap <String, WebSocketSession> openSessions = new ConcurrentHashMap<String, WebSocketSession>();
 	private ConcurrentHashMap <String, Boolean> readyPlayers = new ConcurrentHashMap<String, Boolean>();
-	private ConcurrentHashMap <String, String> party = new ConcurrentHashMap<String, String>();
+	private List<Party> partyManager = new ArrayList<Party>();
 	
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -61,12 +61,19 @@ public class WebSocketMovementRegistry extends TextWebSocketHandler {
 		
 		
 		System.out.println("Message sent: " + responseMessage);
+		for(Party p : partyManager) {
+			if(p.isPlayerInParty(session.getId())) {
+				openSessions.get(p.GetAnother(session.getId())).sendMessage(new TextMessage(responseMessage));
+			}
+		}
+		/*
 		List<WebSocketSession> sessions = new ArrayList<WebSocketSession>(openSessions.values());
 		for(WebSocketSession s : sessions) {			
 			if(s.getId() != session.getId()) {
 				s.sendMessage(new TextMessage(responseMessage));
 			}	
 		}		
+		*/
 	}
 	
 	private String Move(JsonNode params) {
@@ -108,7 +115,7 @@ public class WebSocketMovementRegistry extends TextWebSocketHandler {
 		for(String key: readyPlayers.keySet()) {
 			if(readyPlayers.get(key)) {
 				response = true;
-				party.put(id, key);
+				partyManager.add(new Party(id, key));
 				readyPlayers.remove(key);
 			}
 		}
