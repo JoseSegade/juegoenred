@@ -71,6 +71,14 @@ con los botones habilitados para ello.
 
 ----FASE 4 ----
 
+Protocolo:
+El protocolo usado es a traves de una conexión WebSockets en el cual se intercambian mensajes por servidor a traves de archivos
+JSON. Estos JSON tienen dos campos: uno de tipo, que indica la funcion que se tiene que realizar, otro de parámetros, en el que 
+se mandan los datos necesarios para realizar correctamente la función.
+
+Video:
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/a7l5akSZ8kY/0.jpg)](https://www.youtube.com/watch?v=a7l5akSZ8kY)
+
 Diagrama de clases:
 ![picture](documentation/DiagramadeClases1.png)
 ![picture](documentation/DiagramadeClases2.png)
