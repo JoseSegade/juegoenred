@@ -1,5 +1,8 @@
 ﻿# juegoenred
 
+Enlace a Youtube, video explicativo del funcionamiento del juego Space Invaders
+https://youtu.be/a7l5akSZ8kY
+
 IMPORTANTE: este documento es el equivalente en texto plano al pdf adjunto con el mismo nombre
 
 Juego de la asignatura Juegos en Red - Grado de Diseño y Desarrollo de Videojuegos (URJC)
@@ -66,4 +69,10 @@ con los botones habilitados para ello.
    y a continuación en el navegador escribir: localhost:8080 y nos llevará al inicio del juego
 
 
+----FASE 4 ----
 
+Diagrama de clases:
+![picture](documentation/DiagramadeClases1.png)
+![picture](documentation/DiagramadeClases2.png)
+
+o puede encontrarlo en pdf dentro de la carpeta Documentation.
