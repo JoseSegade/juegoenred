@@ -1,12 +1,18 @@
 package juegoenred.gameinvaders;
 
 public class Party {
+	private int index;
 	private String player1;
 	private String player2;
 	
-	public Party(String player1, String player2) {
+	public Party(int index, String player1, String player2) {
+		this.index = index;
 		this.player1 = player1;
 		this.player2 = player2;
+	}
+	
+	public int getIndex() {
+		return index;
 	}
 	
 	public String getPlayer1() {

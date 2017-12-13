@@ -15,9 +15,29 @@ connection.onmessage = function(msg) {
 		alienInputs = JSON.parse(inputData.params);
 		break;
 	case "ready":
+		
 		ready = JSON.parse(inputData.params).ready;
+		console.log("Ready: " + ready);
+		if(ready){
+			restart();
+		}
+		break;
+	case "close":
+		console.log("Me ha llegado un mensaje diciendo el jugador se ha desconectado");
+		ready = false;
+		restart();
+		sendReady();
+		break;
+	case "alienKill":
+		updateAliens(JSON.parse(inputData.params));
+		break;
+	case "vida":
+		quitarVidaAPlayer2();
+		break;
+	case "end":
 		break;
 	}
+	
 	
 }
 
