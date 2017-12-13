@@ -77,30 +77,30 @@ JSON. Estos JSON tienen dos campos: uno de tipo, que indica la funcion que se ti
 se mandan los datos necesarios para realizar correctamente la función.
 
 * Tipo "ready":
-**Este mensaje indica que el jugador esta listo para empezar una partida.
+** Este mensaje indica que el jugador esta listo para empezar una partida.
 El mensaje de cliente a servidor no recibe parámetros.
 El servidor activa un flag que permite al jugador encontrar partida.
 El servidor devuelve un mensaje con un parámetro booleano que indica si le ha encontrado una partida. Si la encuentra el
 cliente ya puede comenzar la partida.
 * Tipo "move":
-**Este mensaje indica la posicion del oponente.
+** Este mensaje indica la posicion del oponente.
 El mensaje de cliente a servidor recibe dos parámetros: la posicion (int posX) del jugador y si ha disparado (bool dis) o no.
 El servidor copia el mensaje y se lo reenvia al cliente que ya sabe interpretarlo.
 * Tipo "alien":
-**Este mensaje indica la posicion de la bala cuando dispara un alien.
+** Este mensaje indica la posicion de la bala cuando dispara un alien.
 El mensaje de cliente a servidor recibe dos parámetros: la posicion x del disparo (double coordX) y la posicion y (double coordY).
 El servidor copia el mensaje y se lo reenvia al cliente que ya sabe interpretarlo.
-*Tipo "alienKill":
-**Este mensaje indica el alien que el jugador 2 ha matado y actualiza su puntuacion.
+* Tipo "alienKill":
+** Este mensaje indica el alien que el jugador 2 ha matado y actualiza su puntuacion.
 El mensaje de cliente a servidor recibe tres parametros: la posicion en el array del alien (int alienPos),
 la puntuacion del jugador 2 (int score) y el indice del array del alien que sea (int list).
 El servidor copia el mensaje y se lo reenvia al cliente que ya sabe interpretarlo.
-*Tipo "vida":
-**Este mensaje indica que el jugador ha perdido una vida.
+* Tipo "vida":
+** Este mensaje indica que el jugador ha perdido una vida.
 El mensaje de cliente a servidor recibe un parametro: se indica si se ha perdido una vida (bool quitar).
 El servidor copia el mensaje y se lo reenvia al cliente que ya sabe interpretarlo.
-*Tipo "end":
-**Este mensaje indica que se ha acabado la partida.
+* Tipo "end":
+** Este mensaje indica que se ha acabado la partida.
 El mensaje de cliente a servidor no recibe parámetros.
 El servidor resetea las partidas y deja las listas internas de gestión de sesiones lista para 
 empezar de nuevo.
